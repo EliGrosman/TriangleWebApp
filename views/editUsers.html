@@ -1,0 +1,48 @@
+<%
+   function createCheckbox(columnName, value, slackID) {
+      var chk = document.createElement('input')
+      chk.setAttribute('type', 'checkbox')
+      chk.setAttribute('id', columnName)
+      chk.addEventListener('change', (event) => update(event))
+      chk.checked = trueOrFalse(value)
+      return(chk)
+   }
+%>
+
+<div id="users">
+   <table id="usertable">
+      <tbody>
+         <tr>
+            <th>Full Name</th>
+            <th>slackID</th>
+            <th>username</th>
+            <th>active</th>
+            <th>brother</th>
+            <th>eboard</th>
+            <th>alumnus</th>
+            <th>server</th>
+            <th>recruitment</th>
+            <th>events</th>
+            <th>engineering</th>
+            <th>fundraising</th>
+            <th>standards</th>
+            <% data.forEach((member)=> { %>
+         <tr>
+            <td>
+               <%= member.fullname %>
+            </td>
+            <td>
+               <%= member.slackID %>
+            </td>
+            <td>
+               <%= member.username %>
+            </td>
+            <td>
+               <% createCheckbox('active', data.active, data.slackID) %>
+            </td>
+         </tr>
+         <% }); %>
+            </tr>
+      </tbody>
+   </table>
+</div>

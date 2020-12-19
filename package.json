@@ -1,0 +1,26 @@
+{
+  "name": "trianglepointswebapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/client": "^5.0.2",
+    "@slack/interactive-messages": "^1.7.0",
+    "axios": "^0.21.0",
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "http": "0.0.1-security",
+    "jade": "^1.11.0",
+    "moment-timezone": "^0.5.32",
+    "node-sqlite": "0.0.2-security",
+    "sqlite": "^4.0.18",
+    "sqlite3": "^5.0.0"
+  }
+}

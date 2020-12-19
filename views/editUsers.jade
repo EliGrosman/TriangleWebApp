@@ -1,0 +1,50 @@
+doctype html
+html
+title=title
+
+div(id="users")
+  table(id="usertable")
+    thead  
+      tr
+        th Full Name
+        th SlackID
+        th Username
+        th Active
+        th Brother
+        th Alumnus
+        th Server
+        th Recruitment
+        th Events
+        th Engineering
+        th Fundraising
+        th Standards
+    tbody
+      each member, i in data
+        tr
+          td #{member.fullname}
+          td #{member.slackID}
+          td #{member.username}
+          td 
+            input(type="checkbox" name=member.slackID + "_active" value="true", checked=member.active ? true : false, onClick=`update('active', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_brother" value="true", checked=member.brother ? true : false, onClick=`update('brother', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_alumnus" value="true", checked=member.alumnus ? true : false, onClick=`update('alumnus', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_server" value="true", checked=member.server ? true : false, onClick=`update('server', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_recruitment" value="true", checked=member.recruitment ? true : false, onClick=`update('recruitment', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_events" value="true", checked=member.events ? true : false, onClick=`update('events', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_engineering" value="true", checked=member.engineering ? true : false, onClick=`update('engineering', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
+          td 
+            input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
+
+
+script.
+  function update(attribute, slackID) {
+    window.open(`/editUsers/update?attribute=${attribute}&slackID=${slackID}`,"_self")
+  }

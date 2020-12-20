@@ -7,7 +7,6 @@ var slackSlashCommand = require('./slackBot/slashCommands.js');
 var { recordOneOnOne } = require('./slackBot/utils.js');
 var editUsers = require('./editUsers.js');
 var { sendWeekly } = require("./slackBot/weekly.js")
-const { allowedNodeEnvironmentFlags } = require('process')
 
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
@@ -18,17 +17,11 @@ if (!slackSigningSecret || !slackAccessToken) {
 
 const app = express();
 
-app.use(express.static(__dirname + '/public'));
-app.use('/bower_components',  express.static(__dirname + '/bower_components'));
-app.set('trust proxy');
-
 app.set('views', './views');
 app.set('view engine', 'jade');
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }));
-
 const slackInteractions = createMessageAdapter(slackSigningSecret);
+
 app.use('/slack/actions', slackInteractions.expressMiddleware());
 app.post('/slack/commands', bodyParser.urlencoded({ extended: false }), slackSlashCommand);
 app.use('/editUsers', editUsers);

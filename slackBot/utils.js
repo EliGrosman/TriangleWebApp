@@ -41,10 +41,9 @@ function getCompleted(slackID) {
         reject(0);
       } else {
         let data = [];
-
         let added = 0;
-        completed.forEach((row) => {
-          partnerID = row.slackID;
+        for(let i = 0; i < completed.length; i++) {
+          let partnerID = completed[i].slackID;
           db.get("SELECT r.slackID1 FROM records r WHERE (r.slackID1 = ? AND r.slackID2 = ?)", [partnerID, slackID], (err, row) => {
             data.push({ "slackID": partnerID, "completed": row ? true : false });
             added++;
@@ -52,7 +51,7 @@ function getCompleted(slackID) {
               resolve(data);
             }
           })
-        })
+        }
       }
     })
   })

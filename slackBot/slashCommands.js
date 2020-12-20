@@ -7,13 +7,13 @@ const web = new WebClient(slackAccessToken);
 function slackSlashCommand(req, res, next) {
   var command = req.body.command
   if (command === '/record') {
-
     web.dialog.open({
       trigger_id: req.body.trigger_id,
       dialog: record_dialog
     }).then(() => {
       res.send();
     }).catch((error) => {
+      console.log(error);
       sendError(res, 421);
     });
 
@@ -65,10 +65,9 @@ function slackSlashCommand(req, res, next) {
   } else if (command == "/completed") {
 
     getCompleted(req.body.user_id).then((data) => {
-      console.log(data);
       let responseText = "You have had one-on-ones with the following. There is a check if they have recorded and an X if not. \n";
       data.forEach((el) => {
-        responseText += `- <@${el.slackID}> ${el.completed ? "✔️" : "❌"}`
+        responseText += `- <@${el.slackID}> ${el.completed ? "✔️" : "❌"} \n`
       })
       res.send(responseText);
     }).catch((err) => {

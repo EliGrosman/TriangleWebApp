@@ -5,23 +5,23 @@ const attributes = ['active', 'brother', 'alumnus', 'server', 'recruitment', 'ev
 
 var { getUsers, updateUser } = require('./slackBot/utils.js')
 
-router.get("/", function (req, res, next) {
+router.get("/editUsers", function (req, res, next) {
   getUsers().then((data) => {
     res.render('editUsers', { title: 'Edit Users', data: data })
   })
 });
 
-router.get('/update', function (req, res) {
+router.get('/editUsers/update', function (req, res) {
   let attr = req.query.attribute;
   if (attributes.includes(attr)) {
     updateUser(req.query.slackID, req.query.attribute).then(() => {
-      res.redirect('/editUsers');
+      res.redirect('/admin/editUsers');
     }).catch((err) => {
       console.log(err);
-      res.redirect('/editUsers');
+      res.redirect('/admin/editUsers');
     })
   } else {
-    res.redirect('/editUsers');
+    res.redirect('/admin/editUsers');
   }
 
 })

@@ -83,7 +83,6 @@ function slackSlashCommand(req, res, next) {
   } else if (command = "/takeattendance") {
 
     isChair(req.body.user_id).then((committees) => {
-      console.log(req.body)
       if(committees.length === 1) {
         generateAttendanceUrl(req.body.user_id, committees[0], moment().unix()).then((url) => {
           res.send("Use this link to record attendance: " + url + "\nThis will expire in 24 hours.");

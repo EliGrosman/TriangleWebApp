@@ -200,7 +200,7 @@ function isChair(slackID) {
         if (row) result.push(committee);
         checked++;
         if (checked === committees.length) {
-          if(result.length === 0) reject()
+          if(result.length === 0) reject("not chair")
           else resolve(result);
         }
       })

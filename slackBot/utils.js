@@ -125,6 +125,19 @@ function updateUser(slackID, attribute) {
   })
 }
 
+function updateUserChairs(slackID, chairs) {
+  return new Promise((resolve, reject) => {
+    db.run(`UPDATE people SET chair = ? WHERE slackID = ?`, [chairs, slackID],
+      (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve("Updated!");
+        }
+      })
+  })
+}
+
 function sendDM(slackID, message) {
   return new Promise((resolve, reject) => {
     const slackAccessToken = process.env.BOT_USER_TOKEN
@@ -281,4 +294,4 @@ function createDbConnection(filename) {
 }
 
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM }
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM }

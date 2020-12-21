@@ -18,6 +18,7 @@ div(id="users")
         th Engineering
         th Fundraising
         th Standards
+        th Chairs
     tbody
       each member, i in data
         tr
@@ -42,9 +43,15 @@ div(id="users")
             input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
           td 
             input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
-
+          td
+            input(type="text", name=member.slackID + "_chair", value=member.chair, onfocusout=`updateChair('${member.slackID}')`)
 
 script.
   function update(attribute, slackID) {
     window.open(`/admin/editUsers/update?attribute=${attribute}&slackID=${slackID}`, "_self")
+  }
+
+  function updateChair(slackID) {
+    let text = document.getElementsByName(slackID + "_chair");
+    window.open(`/admin/editUsers/updateChairs?value=${text[0].value}&slackID=${slackID}`, "_self")
   }

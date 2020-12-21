@@ -158,7 +158,7 @@ function checkToken(token) {
         reject(err);
       } else {
         let timeNow = moment().tz("America/Los_Angeles").unix();
-        if (timeNow - parseFloat(row.generatedTime) > 86400) {
+        if (timeNow - moment.unix(parseFloat(row.generatedTime)) > 86400) {
           reject('expired');
         } else {
           resolve(row);
@@ -243,7 +243,7 @@ function generateAttendanceUrl(slackID, committee) {
         db.get("SELECT fullname FROM people WHERE slackID = ?", [slackID], (err, row) => {
           if (err || !row) reject()
           else {
-            resolve(`http://localhost:5000/attendance?meeting=${committee}&takenBy=${row.fullname.replace(" ", "%20")}&token=${token}`)
+            resolve(`http://server.eligrosman.com:5000/attendance?meeting=${committee}&takenBy=${row.fullname.replace(" ", "%20")}&token=${token}`)
           }
         })
       }

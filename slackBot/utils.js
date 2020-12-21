@@ -158,7 +158,7 @@ function checkToken(token) {
         reject(err);
       } else {
         let timeNow = moment().tz("America/Los_Angeles").unix();
-        if (timeNow - moment.unix(parseFloat(row.generatedTime)) > 86400) {
+        if (timeNow - moment().unix(parseFloat(row.generatedTime)) > 86400) {
           reject('expired');
         } else {
           resolve(row);

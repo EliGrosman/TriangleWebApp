@@ -1,0 +1,21 @@
+doctype html
+html
+title=title
+
+div(id="users")
+  table(id="usertable")
+    thead  
+      tr
+        th Date
+        th Meeting Type
+        th Recorded By
+        th 
+    tbody
+      each attendance, i in data
+        tr
+          td #{attendance.time}
+          td #{attendance.meeting}
+          td #{attendance.takenBy}
+          td
+            a(href="/admin/attendance?token=" + attendance.token) View
+

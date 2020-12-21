@@ -3,7 +3,7 @@ var router = express.Router();
 
 const attributes = ['active', 'brother', 'alumnus', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards'];
 
-var { getUsers, updateUser } = require('./slackBot/utils.js')
+var { getUsers, updateUser, getAttendanceData, getAttendanceForToken } = require('./slackBot/utils.js')
 
 router.get("/editUsers", function (req, res, next) {
   getUsers().then((data) => {
@@ -23,7 +23,16 @@ router.get('/editUsers/update', function (req, res) {
   } else {
     res.redirect('/admin/editUsers');
   }
+})
 
+router.get('/attendance', async (req, res) => {
+  if(req.query.token) {
+    let data = await getAttendanceForToken(req.query.token);
+    res.render('attendanceView', { title: 'Attendance', data: data })
+  } else {
+    let data = await getAttendanceData();
+    res.render('attendanceHome', { title: 'Attendance', data: data })
+  }
 })
 
 module.exports = router;

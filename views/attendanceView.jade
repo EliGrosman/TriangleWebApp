@@ -1,0 +1,20 @@
+doctype html
+html
+title=title
+
+div(id="attendance")
+  table(id="attendanceTable")
+    thead  
+      tr
+        th Member
+        th Here
+        th Excused
+        th 
+    tbody
+      each member, i in data
+        tr
+          td #{member.fullname}
+          td #{member.here}
+          td #{member.excused}
+div(id="footer")
+    a(href="/admin/attendance") Back

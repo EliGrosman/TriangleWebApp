@@ -4,6 +4,7 @@ const moment = require('moment-timezone');
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 const axios = require('axios')
+const { open } = require('sqlite');
 
 const committees = ["recruitment", "events", "engineering", "fundraising"];
 
@@ -44,7 +45,7 @@ function getCompleted(slackID) {
       } else {
         let data = [];
         let added = 0;
-        for(let i = 0; i < completed.length; i++) {
+        for (let i = 0; i < completed.length; i++) {
           let partnerID = completed[i].slackID;
           db.get("SELECT r.slackID1 FROM records r WHERE (r.slackID1 = ? AND r.slackID2 = ?)", [partnerID, slackID], (err, row) => {
             data.push({ "slackID": partnerID, "completed": row ? true : false });
@@ -140,11 +141,11 @@ function sendDM(slackID, message) {
 function checkToken(token) {
   return new Promise((resolve, reject) => {
     db.get('SELECT meeting, generatedTime FROM attendanceTokens WHERE token = ?', [token], (err, row) => {
-      if(err || !row) {
+      if (err || !row) {
         reject(err);
       } else {
         let timeNow = moment().tz("America/Los_Angeles").unix();
-        if(timeNow - parseFloat(row.generatedTime) > 86400) {
+        if (timeNow - parseFloat(row.generatedTime) > 86400) {
           reject('expired');
         } else {
           resolve(row);
@@ -157,7 +158,7 @@ function checkToken(token) {
 function getCommitteeMembers(meeting) {
   return new Promise((resolve, reject) => {
     db.all(`SELECT slackID, fullname FROM people WHERE ${meeting} = 1`, [], (err, rows) => {
-      if(err || !rows) {
+      if (err || !rows) {
         reject(err);
       } else {
         resolve(rows);
@@ -168,17 +169,17 @@ function getCommitteeMembers(meeting) {
 
 function logAttendance(data, takenBy, token) {
   return new Promise((resolve, reject) => {
-    let date = moment().tz("America/Los_Angeles").format();
+    let date = moment().tz("America/Los_Angeles").format("M/D/YYYY H:mm");
     let added = 0;
     data.forEach((member) => {
       let here = member.here ? 1 : 0;
       let excused = member.excused ? 1 : 0;
       db.all("SELECT * FROM attendance WHERE token = ?", [token], (err, rows) => {
-        if(rows.length === 0) {
+        if (rows.length === 0) {
           db.run("INSERT INTO attendance (date, takenBy, slackID, here, excused, token) VALUES(?, ?, ?, ?, ?, ?)", [date, takenBy, member.slackID, here, excused, token], (err) => {
-            if(err) reject(err);
+            if (err) reject(err);
             added++;
-            if(added === data.length) {
+            if (added === data.length) {
               resolve("Success");
             }
           })
@@ -196,9 +197,9 @@ function isChair(slackID) {
     let result = [];
     committees.forEach((committee) => {
       db.get(`SELECT * FROM people WHERE slackID = ? AND chair LIKE '%${committee}%'`, [slackID], (err, row) => {
-        if(row) result.push(committee);
+        if (row) result.push(committee);
         checked++;
-        if(checked === committees.length) resolve(result);
+        if (checked === committees.length) resolve(result);
       })
     })
   })
@@ -208,8 +209,8 @@ function generateToken(length) {
   var result = '';
   var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   var charactersLength = characters.length;
-  for ( var i = 0; i < length; i++ ) {
-     result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
 }
@@ -218,12 +219,12 @@ function generateAttendanceUrl(slackID, committee, time) {
   return new Promise((resolve, reject) => {
     let token = generateToken(15);
     db.get("SELECT * FROM attendanceTokens WHERE token = ?", [token], (err, row) => {
-      if(row) resolve(generateAttendanceUrl(slackID, committee, time));
-      else if(err) reject(err)
+      if (row) resolve(generateAttendanceUrl(slackID, committee, time));
+      else if (err) reject(err)
       else {
         db.run("INSERT INTO attendanceTokens (token, meeting, generatedTime) VALUES(?, ?, ?)", [token, committee, time]);
         db.get("SELECT fullname FROM people WHERE slackID = ?", [slackID], (err, row) => {
-          if(err || !row) reject()
+          if (err || !row) reject()
           else {
             resolve(`http://localhost:5000/attendance?meeting=${committee}&takenBy=${row.fullname}&token=${token}`)
           }
@@ -233,4 +234,48 @@ function generateAttendanceUrl(slackID, committee, time) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, sendDM }
+async function getAttendanceData() {
+  let data = [];
+  let asyncDb = await createDbConnection("./database.db");
+  
+  let tokens = await asyncDb.all("SELECT DISTINCT token, meeting, generatedTime FROM attendanceTokens");
+  for (let i = 0; i < tokens.length; i++) {
+    let row = tokens[i];
+    let attendanceData = await asyncDb.all("SELECT slackID, here, excused FROM attendance WHERE token = ?", [row.token]);
+    let takenBy = await asyncDb.all("SELECT DISTINCT takenBY FROM attendance WHERE token = ?", [row.token])
+    takenBy = takenBy.map((el) => {
+      return(el.takenBy);
+    })
+    let attendance = { token: row.token, meeting: row.meeting, time: moment.unix(row.generatedTime).format("M/D/YYYY H:mm"), takenBy: takenBy, attendance: attendanceData }
+    data.push(attendance);
+  }
+  return (data);
+}
+
+async function getAttendanceForToken(token) {
+  let asyncDb = await createDbConnection("./database.db");
+  let data = await asyncDb.all("SELECT * from attendance WHERE token = ?", [token]);
+  for(let i = 0; i < data.length; i++) {
+    let member = data[i];
+    let fullname = await getFullname(member.slackID);
+    member.fullname = fullname;
+  }
+  return(data);
+}
+
+async function getFullname(slackID) {
+  let asyncDb = await createDbConnection("./database.db");
+  let data = await asyncDb.get("SELECT fullname FROM people WHERE slackID = ?", [slackID]);
+
+  return(data.fullname);
+}
+
+function createDbConnection(filename) {
+  return open({
+    filename,
+    driver: sqlite3.Database
+  });
+}
+
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM }

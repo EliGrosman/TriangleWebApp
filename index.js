@@ -7,7 +7,7 @@ var slackSlashCommand = require('./slackBot/slashCommands.js');
 var { recordOneOnOne, generateAttendanceUrl, sendError } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
-var { sendWeekly } = require("./slackBot/weekly.js")
+var { sendWeekly, genWeekly } = require("./slackBot/weekly.js")
 
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN

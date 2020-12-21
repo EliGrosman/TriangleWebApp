@@ -92,4 +92,4 @@ async function sendDMSleep(func, slackID, message) {
 
 
 
-module.exports = { sendWeekly }
+module.exports = { sendWeekly, genWeekly }

@@ -199,7 +199,10 @@ function isChair(slackID) {
       db.get(`SELECT * FROM people WHERE slackID = ? AND chair LIKE '%${committee}%'`, [slackID], (err, row) => {
         if (row) result.push(committee);
         checked++;
-        if (checked === committees.length) resolve(result);
+        if (checked === committees.length) {
+          if(result.length === 0) reject()
+          else resolve(result);
+        }
       })
     })
   })

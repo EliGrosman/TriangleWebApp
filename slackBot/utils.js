@@ -135,4 +135,53 @@ function sendDM(slackID, message) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, sendDM }
+function checkToken(token) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT meeting FROM attendanceTokens WHERE token = ?', [token], (err, row) => {
+      if(err || !row) {
+        reject(err);
+      } else {
+        resolve(row);
+      }
+    })
+  })
+}
+
+function getCommitteeMembers(meeting) {
+  return new Promise((resolve, reject) => {
+    db.all(`SELECT slackID, fullname FROM people WHERE ${meeting} = 1`, [], (err, rows) => {
+      if(err || !rows) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    })
+  })
+}
+
+function logAttendance(data, takenBy, token) {
+  return new Promise((resolve, reject) => {
+    let date = moment().tz("America/Los_Angeles").format();
+    let added = 0;
+    data.forEach((member) => {
+      let here = member.here ? 1 : 0;
+      let excused = member.excused ? 1 : 0;
+      db.all("SELECT * FROM attendance WHERE token = ?", [token], (err, rows) => {
+        if(rows.length === 0) {
+          db.run("INSERT INTO attendance (date, takenBy, slackID, here, excused, token) VALUES(?, ?, ?, ?, ?, ?)", [date, takenBy, member.slackID, here, excused, token], (err) => {
+            if(err) reject(err);
+            added++;
+            console.log(added);
+            if(added === data.length) {
+              resolve("Success");
+            }
+          })
+        } else {
+          reject("exists");
+        }
+      })
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, sendDM }

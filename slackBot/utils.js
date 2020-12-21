@@ -231,13 +231,14 @@ function generateToken(length) {
   return result;
 }
 
-function generateAttendanceUrl(slackID, committee, time) {
+function generateAttendanceUrl(slackID, committee) {
   return new Promise((resolve, reject) => {
     let token = generateToken(15);
     db.get("SELECT * FROM attendanceTokens WHERE token = ?", [token], (err, row) => {
       if (row) resolve(generateAttendanceUrl(slackID, committee, time));
       else if (err) reject(err)
       else {
+        let time = moment().tz("America/Los_Angeles").format("M/D/YYYY H:mm");
         db.run("INSERT INTO attendanceTokens (token, meeting, generatedTime) VALUES(?, ?, ?)", [token, committee, time]);
         db.get("SELECT fullname FROM people WHERE slackID = ?", [slackID], (err, row) => {
           if (err || !row) reject()

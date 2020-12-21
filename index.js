@@ -60,7 +60,7 @@ slackInteractions.action({ type: 'dialog_submission' }, (payload, respond) => {
 });
 
 slackInteractions.action('pick_committee', (payload, respond) => {
-  generateAttendanceUrl(payload.user.id, payload.actions[0].selected_options[0].value, payload.action_ts).then((url) => {
+  generateAttendanceUrl(payload.user.id, payload.actions[0].selected_options[0].value).then((url) => {
     respond({
       text: "Use this link to record attendance: " + url + "\nThis will expire in 24 hours."
     })

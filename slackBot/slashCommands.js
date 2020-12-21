@@ -84,7 +84,7 @@ function slackSlashCommand(req, res, next) {
 
     isChair(req.body.user_id).then((committees) => {
       if(committees.length === 1) {
-        generateAttendanceUrl(req.body.user_id, committees[0], moment().unix()).then((url) => {
+        generateAttendanceUrl(req.body.user_id, committees[0]).then((url) => {
           res.send("Use this link to record attendance: " + url + "\nThis will expire in 24 hours.");
         }).catch((err) => {
           res.send("An error has occured! Please try again or contact Eli if this keeps occuring.");

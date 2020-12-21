@@ -4,7 +4,7 @@ const express = require('express')
 const { createMessageAdapter } = require('@slack/interactive-messages')
 const bodyParser = require('body-parser')
 var slackSlashCommand = require('./slackBot/slashCommands.js');
-var { recordOneOnOne } = require('./slackBot/utils.js');
+var { recordOneOnOne, generateAttendanceUrl, sendError } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
 var { sendWeekly } = require("./slackBot/weekly.js")
@@ -16,17 +16,18 @@ if (!slackSigningSecret || !slackAccessToken) {
   throw new Error('A Slack signing secret and access token are required to run this app.');
 }
 
+let urlencodedParser = bodyParser.urlencoded({ extended: false })
+
 const app = express();
+
 
 app.set('views', './views');
 app.set('view engine', 'jade');
 
-app.use(bodyParser.urlencoded({ extended: false }))
 
-
-// 
+// Triangle endpoints
 app.use('/admin', adminPages);
-app.use('/attendance', attendancePages);
+app.use('/attendance', urlencodedParser, attendancePages);
 
 
 // Slack endpoints
@@ -57,6 +58,19 @@ slackInteractions.action({ type: 'dialog_submission' }, (payload, respond) => {
       }
     })
 });
+
+slackInteractions.action('pick_committee', (payload, respond) => {
+  generateAttendanceUrl(payload.user.id, payload.actions[0].selected_options[0].value, payload.action_ts).then((url) => {
+    respond({
+      text: "Use this link to record attendance: " + url + "\nThis will expire in 24 hours."
+    })
+  }).catch((err) => {
+    respond({
+      text: "An error has occured! Please try again or contact Eli if this keeps occuring."
+    })
+  })
+
+})
 
 const port = process.env.PORT || 5000;
 http.createServer(app).listen(port, () => {

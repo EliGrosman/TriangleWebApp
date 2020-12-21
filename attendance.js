@@ -17,8 +17,12 @@ router.get("/", function (req, res, next) {
       }).catch(() => {
         res.send("Error");
       })
-    }).catch(() => {
-      res.send("Invalid");
+    }).catch((err) => {
+      if(err === "expired") {
+        res.send("Link expired.")
+      } else {
+        res.send("Invalid");
+      }
     })
   }
 });

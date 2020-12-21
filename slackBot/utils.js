@@ -5,6 +5,8 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 const axios = require('axios')
 
+const committees = ["recruitment", "events", "engineering", "fundraising"];
+
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
   var partnerID = payload.submission.user.toString();
@@ -15,7 +17,7 @@ function recordOneOnOne(payload) {
     } else if (userID === partnerID) {
       reject(426);
     } else {
-      let time = moment().tz("America/Los_Angeles").format();
+      let time = moment().tz("America/Los_Angeles").format("M/D/YYYY H:mm");
       db.get("SELECT * FROM records WHERE slackID1 = ? AND slackID2 = ?", [userID, partnerID], (err, row) => {
         if (!row) {
           db.run("INSERT INTO records (slackID1, slackID2, completedDate, comment) VALUES (?, ?, ?, ?)", [userID, partnerID, time, comment], (error) => {
@@ -137,11 +139,16 @@ function sendDM(slackID, message) {
 
 function checkToken(token) {
   return new Promise((resolve, reject) => {
-    db.get('SELECT meeting FROM attendanceTokens WHERE token = ?', [token], (err, row) => {
+    db.get('SELECT meeting, generatedTime FROM attendanceTokens WHERE token = ?', [token], (err, row) => {
       if(err || !row) {
         reject(err);
       } else {
-        resolve(row);
+        let timeNow = moment().tz("America/Los_Angeles").unix();
+        if(timeNow - parseFloat(row.generatedTime) > 86400) {
+          reject('expired');
+        } else {
+          resolve(row);
+        }
       }
     })
   })
@@ -171,7 +178,6 @@ function logAttendance(data, takenBy, token) {
           db.run("INSERT INTO attendance (date, takenBy, slackID, here, excused, token) VALUES(?, ?, ?, ?, ?, ?)", [date, takenBy, member.slackID, here, excused, token], (err) => {
             if(err) reject(err);
             added++;
-            console.log(added);
             if(added === data.length) {
               resolve("Success");
             }
@@ -184,4 +190,47 @@ function logAttendance(data, takenBy, token) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, sendDM }
+function isChair(slackID) {
+  return new Promise((resolve, reject) => {
+    let checked = 0;
+    let result = [];
+    committees.forEach((committee) => {
+      db.get(`SELECT * FROM people WHERE slackID = ? AND chair LIKE '%${committee}%'`, [slackID], (err, row) => {
+        if(row) result.push(committee);
+        checked++;
+        if(checked === committees.length) resolve(result);
+      })
+    })
+  })
+}
+
+function generateToken(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+     result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+function generateAttendanceUrl(slackID, committee, time) {
+  return new Promise((resolve, reject) => {
+    let token = generateToken(15);
+    db.get("SELECT * FROM attendanceTokens WHERE token = ?", [token], (err, row) => {
+      if(row) resolve(generateAttendanceUrl(slackID, committee, time));
+      else if(err) reject(err)
+      else {
+        db.run("INSERT INTO attendanceTokens (token, meeting, generatedTime) VALUES(?, ?, ?)", [token, committee, time]);
+        db.get("SELECT fullname FROM people WHERE slackID = ?", [slackID], (err, row) => {
+          if(err || !row) reject()
+          else {
+            resolve(`http://localhost:5000/attendance?meeting=${committee}&takenBy=${row.fullname}&token=${token}`)
+          }
+        })
+      }
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, sendDM }

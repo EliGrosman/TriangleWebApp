@@ -1,6 +1,6 @@
-const { record_dialog } = require('./dialogs')
+const { record_dialog, attendanceCommitteeChoice } = require('./dialogs')
 const { WebClient } = require('@slack/client')
-var { getCompleted, getIncomplete, getOneOnOnes, sendError } = require('./utils.js')
+var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair } = require('./utils.js')
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 const web = new WebClient(slackAccessToken);
 
@@ -79,6 +79,25 @@ function slackSlashCommand(req, res, next) {
       }
     })
 
+  } else if (command = "/takeattendance") {
+
+    isChair(req.body.user_id).then((committees) => {
+      if(committees.length === 1) {
+        res.send(committees[0]);
+      } else {
+        let dialogJson = Object.assign({}, attendanceCommitteeChoice);;
+        committees.forEach((committee) => {
+          dialogJson.attachments[0].actions[0].options.push({text: committee, value: committee})
+        })
+        res.json(dialogJson);
+      }
+    }).catch((err) => {
+      if(err === "not chair") {
+        res.send("You are not a committee chair. If this is an error, please contact Eli.")
+      } else {
+        sendError(res, 426);
+      }
+    })
   } else {
     next();
   }

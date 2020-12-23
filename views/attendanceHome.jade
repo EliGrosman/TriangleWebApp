@@ -1,21 +1,25 @@
 doctype html
-html
-title=title
+html(lang='en')
+  include shared/head.jade
+  +head(title)
 
-div(id="users")
-  table(id="usertable")
-    thead  
-      tr
-        th Date
-        th Meeting Type
-        th Recorded By
-        th 
-    tbody
-      each attendance, i in data
-        tr
-          td #{attendance.time}
-          td #{attendance.meeting}
-          td #{attendance.takenBy}
-          td
-            a(href="/admin/attendance?token=" + attendance.token) View
+  body
+    include shared/navbar.jade
+    +head("attendance")
+    div(class="container")
+      table(class="attendanceHomeTable table table-dark table-striped")
+        thead  
+          tr
+            th(scope="col") Date
+            th(scope="col") Meeting Type
+            th(scope="col") Recorded By
+            th(scope="col") 
+        tbody
+          each attendance, i in data
+            tr(scope="row")
+              td #{attendance.time}
+              td #{attendance.meeting}
+              td #{attendance.takenBy}
+              td
+                a(href="/admin/attendance?token=" + attendance.token) View
 

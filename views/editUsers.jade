@@ -1,50 +1,53 @@
 doctype html
-html
-title=title
-
-div(id="users")
-  table(id="usertable")
-    thead  
-      tr
-        th Full Name
-        th SlackID
-        th Username
-        th Active
-        th Brother
-        th Alumnus
-        th Server
-        th Recruitment
-        th Events
-        th Engineering
-        th Fundraising
-        th Standards
-        th Chairs
-    tbody
-      each member, i in data
-        tr
-          td #{member.fullname}
-          td #{member.slackID}
-          td #{member.username}
-          td 
-            input(type="checkbox" name=member.slackID + "_active" value="true", checked=member.active ? true : false, onClick=`update('active', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_brother" value="true", checked=member.brother ? true : false, onClick=`update('brother', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_alumnus" value="true", checked=member.alumnus ? true : false, onClick=`update('alumnus', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_server" value="true", checked=member.server ? true : false, onClick=`update('server', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_recruitment" value="true", checked=member.recruitment ? true : false, onClick=`update('recruitment', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_events" value="true", checked=member.events ? true : false, onClick=`update('events', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_engineering" value="true", checked=member.engineering ? true : false, onClick=`update('engineering', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
-          td 
-            input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
-          td
-            input(type="text", name=member.slackID + "_chair", value=member.chair, onfocusout=`updateChair('${member.slackID}')`)
+html(lang='en')
+  include shared/head.jade
+  +head(title)
+  body
+    include shared/navbar.jade
+    +head("edit")
+    div(class="container")
+      table(class="editUsersTable table table-dark table-striped")
+        thead  
+          tr
+            th(scope="col") Full Name
+            th(scope="col") SlackID
+            th(scope="col") Username
+            th(scope="col") Active
+            th(scope="col") Brother
+            th(scope="col") Alumnus
+            th(scope="col") Server
+            th(scope="col") Recruitment
+            th(scope="col") Events
+            th(scope="col") Engineering
+            th(scope="col") Fundraising
+            th(scope="col") Standards
+            th(scope="col") Chairs
+        tbody
+          each member, i in data
+            tr(scope="row")
+              td #{member.fullname}
+              td(class="other") #{member.slackID}
+              td(class="other") #{member.username}
+              td 
+                input(type="checkbox" name=member.slackID + "_active" value="true", checked=member.active ? true : false, onClick=`update('active', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_brother" value="true", checked=member.brother ? true : false, onClick=`update('brother', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_alumnus" value="true", checked=member.alumnus ? true : false, onClick=`update('alumnus', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_server" value="true", checked=member.server ? true : false, onClick=`update('server', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_recruitment" value="true", checked=member.recruitment ? true : false, onClick=`update('recruitment', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_events" value="true", checked=member.events ? true : false, onClick=`update('events', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_engineering" value="true", checked=member.engineering ? true : false, onClick=`update('engineering', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
+              td
+                input(type="text", name=member.slackID + "_chair", value=member.chair, onfocusout=`updateChair('${member.slackID}')` class="chair_text")
 
 script.
   function update(attribute, slackID) {

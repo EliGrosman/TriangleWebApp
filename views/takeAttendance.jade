@@ -1,24 +1,26 @@
 doctype html
-html
-title=title
+html(lang='en')
+  include shared/head.jade
+  +head(title)
 
-div(id="users")
-form(action=`/attendance/submit/?meeting=${meeting}&takenBy=${takenBy}&token=${token}` method ='post')
-    table(id="usertable")
+  body
+    div(id="users")
+    form(action=`/attendance/submit/?meeting=${meeting}&takenBy=${takenBy}&token=${token}` method ='post')
+      table(id="usertable")
         thead  
-            tr
-                th Name
-                th Here
-                th Excused
+          tr
+            th Name
+            th Here
+            th Excused
 
         tbody
-            each member, i in data
-                tr
-                    td #{member.fullname}
-                    td 
-                        input(type="checkbox" name=member.slackID + "_here", value="true", checked=false)
-                    td 
-                        input(type="checkbox" name=member.slackID + "_excused", value="true", checked=false)
-    input(type="submit")
+          each member, i in data
+            tr
+              td #{member.fullname}
+              td 
+                input(type="checkbox" name=member.slackID + "_here" value="true", checked=false)
+              td 
+                input(type="checkbox" name=member.slackID + "_excused" value="true", checked=false)
+      input(type="submit")
 
 

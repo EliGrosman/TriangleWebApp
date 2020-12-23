@@ -1,0 +1,51 @@
+table th {
+    position: sticky;
+    top: 50px;
+}
+
+.editUsersTable {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    overflow-y: scroll;
+    height: 150px;
+    margin-top: 70px;
+}
+
+.attendanceHomeTable {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: 35%;
+    overflow-y: scroll;
+    height: 150px;
+    margin-top: 70px;
+}
+
+.attendanceTable {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: 25%;
+    overflow-y: scroll;
+    height: 150px;
+    margin-top: 70px;
+}
+
+td.other {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+th {
+    background: #32383e;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chair_text {
+    width: 90%;
+}
+
+.container {
+    width: 100%;
+}

@@ -1,0 +1,12 @@
+mixin head(page)
+  nav(class="navbar navbar-inverse navbar-fixed-top")
+    div(class="container-fluid")
+      div(class="navbar-header")
+        a(class="navbar-brand" href="/") Triangle UW
+      ul(class="nav navbar-nav")
+        li(class=page == "home" ? "active" : "none")
+          a(href="/") Home
+        li(class=page == "edit" ? "active" : "none")
+          a(href="/admin/editUsers") Edit Members
+        li(class=page == "attendance" ? "active" : "none")
+          a(href="/admin/attendance") Attendance

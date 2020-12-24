@@ -263,8 +263,10 @@ async function getAttendanceData() {
     takenBy = takenBy.map((el) => {
       return(el.takenBy);
     })
-    let attendance = { token: row.token, meeting: row.meeting === 'active' ? 'general' : row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
-    data.push(attendance);
+    if(attendanceData.length > 0) {
+      let attendance = { token: row.token, meeting: row.meeting === 'active' ? 'general' : row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
+      data.push(attendance);
+    }
   }
   return (data);
 }

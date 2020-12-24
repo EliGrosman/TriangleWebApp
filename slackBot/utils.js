@@ -294,5 +294,16 @@ function createDbConnection(filename) {
   });
 }
 
+function checkLoginToken(token) {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT * FROM loginTokens WHERE token = ?", [token], (err, row) => {
+      if(err || !row) {
+        reject();
+      } else {
+        resolve();
+      }
+    })
+  })
+}
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM }
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken }

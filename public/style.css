@@ -49,3 +49,11 @@ th {
 .container {
     width: 100%;
 }
+
+main { 
+    margin-top: 70px;   
+}
+
+.error {
+    color: red;
+}

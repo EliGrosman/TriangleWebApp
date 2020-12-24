@@ -4,12 +4,20 @@ var router = express.Router();
 const attributes = ['active', 'brother', 'alumnus', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards'];
 const committees = ['recruitment', 'events', 'engineering', 'fundraising'];
 
-var { getUsers, updateUser, getAttendanceData, getAttendanceForToken, updateUserChairs } = require('./slackBot/utils.js')
+var { getUsers, updateUser, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken } = require('./slackBot/utils.js')
 
 router.get("/editUsers", function (req, res, next) {
-  getUsers().then((data) => {
-    res.render('editUsers', { title: 'Edit Users', data: data })
-  })
+  if (req.session && req.session.login_token) {
+    checkLoginToken(req.session.login_token).then(() => {
+      getUsers().then((data) => {
+        res.render('editUsers', { title: 'Edit Users', data: data })
+      })
+    }).catch(() => {
+      res.render('login', { title: 'Login', redirect: '/admin/editUsers', flash: 'Invalid login token. Please try again.' });
+    })
+  } else {
+    res.render('login', { title: 'Login', redirect: '/admin/editUsers', flash: 'No token' });
+  }
 });
 
 router.get('/editUsers/update', function (req, res) {
@@ -26,12 +34,12 @@ router.get('/editUsers/update', function (req, res) {
   }
 })
 
-router.get('/editUsers/updateChairs', function(req,res) {
+router.get('/editUsers/updateChairs', function (req, res) {
   let slackID = req.query.slackID;
   let values = req.query.value.replace(/^,+|,+$/g, '').split(",");
   let chairs = values.filter((val) => {
-    if(committees.includes(val.toLowerCase())) {
-      return(val.toLowerCase());
+    if (committees.includes(val.toLowerCase())) {
+      return (val.toLowerCase());
     }
   })
 
@@ -44,12 +52,28 @@ router.get('/editUsers/updateChairs', function(req,res) {
 })
 
 router.get('/attendance', async (req, res) => {
-  if(req.query.token) {
-    let data = await getAttendanceForToken(req.query.token);
-    res.render('attendanceView', { title: 'Attendance', data: data })
+  if (req.session && req.session.login_token) {
+    checkLoginToken(req.session.login_token).then(async () => {
+      if (req.query.token) {
+        let data = await getAttendanceForToken(req.query.token);
+        res.render('attendanceView', { title: 'Attendance', data: data })
+      } else {
+        let data = await getAttendanceData();
+        res.render('attendanceHome', { title: 'Attendance', data: data })
+      }
+    }).catch(() => {
+      let redirect = '/admin/attendance'
+      if (req.query.token) {
+        redirect += '?token=' + req.query.token;
+      }
+      res.render('login', { title: 'Login', redirect: redirect, flash: 'Invalid login token. Please try again.' });
+    })
   } else {
-    let data = await getAttendanceData();
-    res.render('attendanceHome', { title: 'Attendance', data: data })
+    let redirect = '/admin/attendance'
+    if (req.query.token) {
+      redirect += '?token=' + req.query.token;
+    }
+    res.render('login', { title: 'Login', redirect: redirect, flash: 'No token' });
   }
 })
 

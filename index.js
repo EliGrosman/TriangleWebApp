@@ -1,6 +1,7 @@
 require('dotenv').config()
 const http = require('http')
 const express = require('express')
+var session = require('express-session')
 const { createMessageAdapter } = require('@slack/interactive-messages')
 const bodyParser = require('body-parser')
 const path = require('path');
@@ -8,6 +9,7 @@ var slackSlashCommand = require('./slackBot/slashCommands.js');
 var { recordOneOnOne, generateAttendanceUrl, sendError } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
+var login = require('./login')
 var { sendWeekly, genWeekly } = require("./slackBot/weekly.js")
 
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET
@@ -26,15 +28,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', './views');
 app.set('view engine', 'jade');
 
+app.set('trust proxy', 1)
+app.use(session({
+    secret: process.env["SESSION_SECRET"],
+    cookie: {
+        maxAge:30 * 60 * 1000,
+        httpOnly: true
+    },
+    rolling: true,
+    resave: true,
+    saveUninitialized: true,
+}))
 
 // Triangle endpoints
-app.get('/', function(req, res, next) {
+app.get('/', function (req, res, next) {
     res.render('home', { title: 'Home' })
 })
 
 app.use('/admin', adminPages);
 app.use('/attendance', urlencodedParser, attendancePages);
-
+app.use('/', urlencodedParser, login);
 
 // Slack endpoints
 const slackInteractions = createMessageAdapter(slackSigningSecret);
@@ -42,7 +55,7 @@ const slackInteractions = createMessageAdapter(slackSigningSecret);
 app.use('/slack/actions', slackInteractions.expressMiddleware());
 app.post('/slack/commands', bodyParser.urlencoded({ extended: false }), slackSlashCommand);
 
-app.get('/slack/sendWeekly', async(req, res) => {
+app.get('/slack/sendWeekly', async (req, res) => {
     let data = await genWeekly();
     sendWeekly();
     res.send(data);

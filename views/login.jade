@@ -9,7 +9,7 @@ html(lang='en')
       div(class="container")
         if flash
           p(class="error")= flash
-        form(action="/login?redirect=" + redirect method='post')
+        form(action="/admin/login?redirect=" + redirect method='post')
           div(class='form-group')
             label(for='login_token') Login Token
               input(id='login_token' type='password' name='login_token' class='form-control')

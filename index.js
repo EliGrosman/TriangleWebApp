@@ -47,7 +47,7 @@ app.get('/', function (req, res, next) {
 
 app.use('/admin', adminPages);
 app.use('/attendance', urlencodedParser, attendancePages);
-app.use('/', urlencodedParser, login);
+app.use('/admin', urlencodedParser, login);
 
 // Slack endpoints
 const slackInteractions = createMessageAdapter(slackSigningSecret);

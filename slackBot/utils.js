@@ -263,7 +263,7 @@ async function getAttendanceData() {
     takenBy = takenBy.map((el) => {
       return(el.takenBy);
     })
-    let attendance = { token: row.token, meeting: row.meeting, time: moment.unix(row.generatedTime).format("M/D/YYYY H:mm"), takenBy: takenBy, attendance: attendanceData }
+    let attendance = { token: row.token, meeting: row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
     data.push(attendance);
   }
   return (data);

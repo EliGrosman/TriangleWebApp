@@ -7,7 +7,7 @@ html(lang='en')
     include shared/navbar.jade
     +head("attendance")
     div(class="container")
-      table(class="attendanceTable table table-dark table-striped")
+      table(class="attendanceTable table table-dark")
         thead  
           tr
             th Member
@@ -16,8 +16,15 @@ html(lang='en')
             th 
         tbody
           each member, i in data
-            tr
-              td #{member.fullname}
-              td #{member.here}
-              td #{member.excused}
+            if(member.here === 1 || member.excused === 1) 
+              tr
+                td(class="tr_here") #{member.fullname}
+                td #{member.here}
+                td #{member.excused}
+            else
+              tr
+                td(class="tr_nothere") #{member.fullname}
+                td #{member.here}
+                td #{member.excused}
+
       a(href="/admin/attendance") Back

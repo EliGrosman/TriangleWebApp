@@ -42,6 +42,14 @@ th {
     text-overflow: ellipsis;
 }
 
+.tr_here {
+    background-color: greenyellow;
+}
+
+.tr_nothere {
+    background-color: red;
+}
+
 .chair_text {
     width: 90%;
 }

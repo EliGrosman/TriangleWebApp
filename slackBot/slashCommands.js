@@ -94,7 +94,13 @@ function slackSlashCommand(req, res, next) {
         // clear options
         dialogJson.attachments[0].actions[0].options = [];
         committees.forEach((committee) => {
-          dialogJson.attachments[0].actions[0].options.push({text: committee, value: committee})
+          let text = committee;
+          let value = committee;
+          if(committee === "secretary") {
+            text = "general";
+            value = "active";
+          }
+          dialogJson.attachments[0].actions[0].options.push({text: text, value: value})
         })
         res.json(dialogJson);
       }

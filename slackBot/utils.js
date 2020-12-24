@@ -6,7 +6,7 @@ let db = new sqlite3.Database('./database.db');
 const axios = require('axios')
 const { open } = require('sqlite');
 
-const committees = ["recruitment", "events", "engineering", "fundraising"];
+const committees = ["recruitment", "events", "engineering", "fundraising", 'secretary'];
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -263,7 +263,7 @@ async function getAttendanceData() {
     takenBy = takenBy.map((el) => {
       return(el.takenBy);
     })
-    let attendance = { token: row.token, meeting: row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
+    let attendance = { token: row.token, meeting: row.meeting === 'active' ? 'general' : row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
     data.push(attendance);
   }
   return (data);

@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 const attributes = ['active', 'brother', 'alumnus', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards'];
-const committees = ['recruitment', 'events', 'engineering', 'fundraising'];
+const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary'];
 
 var { getUsers, updateUser, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken } = require('./slackBot/utils.js')
 

@@ -15,6 +15,7 @@ html(lang='en')
             th(scope="col") Active
             th(scope="col") Brother
             th(scope="col") Alumnus
+            th(scope="col") Eboard
             th(scope="col") Server
             th(scope="col") Recruitment
             th(scope="col") Events
@@ -34,6 +35,8 @@ html(lang='en')
                 input(type="checkbox" name=member.slackID + "_brother" value="true", checked=member.brother ? true : false, onClick=`update('brother', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_alumnus" value="true", checked=member.alumnus ? true : false, onClick=`update('alumnus', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_eboard" value="true", checked=member.eboard ? true : false, onClick=`update('eboard', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_server" value="true", checked=member.server ? true : false, onClick=`update('server', '${member.slackID}')`)
               td 

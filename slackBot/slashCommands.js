@@ -1,12 +1,12 @@
-const { record_dialog, attendanceCommitteeChoice } = require('./dialogs')
+const { record_dialog, createCode_dialog, attendanceCommitteeChoice } = require('./dialogs')
 const { WebClient } = require('@slack/client')
-var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl } = require('./utils.js')
+var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute } = require('./utils.js')
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 const web = new WebClient(slackAccessToken);
 const moment = require('moment-timezone');
 
 function slackSlashCommand(req, res, next) {
-  var command = req.body.command
+  var command = req.body.command.toLowerCase();
   if (command === '/record') {
     web.dialog.open({
       trigger_id: req.body.trigger_id,
@@ -43,7 +43,7 @@ function slackSlashCommand(req, res, next) {
       sendError(res, 420);
     })
 
-  } else if (command == "/whonext") {
+  } else if (command === "/whonext") {
 
     getIncomplete(req.body.user_id).then((data) => {
       let responseText = "";
@@ -63,7 +63,7 @@ function slackSlashCommand(req, res, next) {
       sendError(res, 424);
     })
 
-  } else if (command == "/completed") {
+  } else if (command === "/completed") {
 
     getCompleted(req.body.user_id).then((data) => {
       let responseText = "You have had one-on-ones with the following. There is a check if they have recorded and an X if not. \n";
@@ -80,8 +80,8 @@ function slackSlashCommand(req, res, next) {
       }
     })
 
-  } else if (command = "/takeattendance") {
-
+  } else if (command === "/takeattendance") {
+    console.log("EEE")
     isChair(req.body.user_id).then((committees) => {
       if(committees.length === 1) {
         generateAttendanceUrl(req.body.user_id, committees[0]).then((url) => {
@@ -112,6 +112,24 @@ function slackSlashCommand(req, res, next) {
         sendError(res, 426);
       }
     })
+  } else if(command === '/createcode') {
+    isAttribute(req.body.user_id, 'eboard').then(() => {
+      let modalJson = Object.assign({}, createCode_dialog);
+      modalJson.private_metadata = req.body.channel_id;
+      web.views.open({
+        trigger_id: req.body.trigger_id,
+        view: modalJson
+      }).then(() => {
+        res.send();
+      }).catch((error) => {
+        console.log(error);
+        sendError(res, 421);
+      });  
+    }).catch(() => {
+      res.send("Unable to run this command. If this keeps occuring, please contact Eli.")
+    })
+  } else if(command === '/redeem') {
+
   } else {
     next();
   }

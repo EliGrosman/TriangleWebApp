@@ -7,6 +7,7 @@ const axios = require('axios')
 const { open } = require('sqlite');
 
 const committees = ["recruitment", "events", "engineering", "fundraising", 'secretary'];
+const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards'];
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -143,6 +144,19 @@ function sendDM(slackID, message) {
     const slackAccessToken = process.env.BOT_USER_TOKEN
     let url = 'https://slack.com/api/chat.postMessage';
     let data = `?token=${slackAccessToken}&channel=${slackID}&text=${message}`;
+    axios.post(url + data).then((response) => {
+      resolve(response);
+    }).catch((err) => {
+      reject(err);
+    })
+  })
+}
+
+function sendEph(slackID, channelID, message) {
+  return new Promise((resolve, reject) => {
+    const slackAccessToken = process.env.BOT_USER_TOKEN
+    let url = 'https://slack.com/api/chat.postEphemeral';
+    let data = `?token=${slackAccessToken}&channel=${channelID}&text=${message}&user=${slackID}`;
     axios.post(url + data).then((response) => {
       resolve(response);
     }).catch((err) => {
@@ -308,4 +322,36 @@ function checkLoginToken(token) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken }
+function isAttribute(slackID, attribute) {
+  attribute = attribute.toLowerCase();
+  return new Promise((resolve, reject) => {
+    if(!attributes.includes(attribute)) {
+      reject();
+    } else {
+      db.get(`SELECT * FROM people WHERE slackID = ? AND ${attribute} = 1`, [slackID], (err, row) => {
+        if(err || !row) {
+          reject();
+        } else {
+          resolve();
+        }
+      })
+    }
+  })
+}
+
+function createPointsCode(slackID, channelID, value, description, uses) {
+  return new Promise((resolve, reject) => {
+    let code = generateToken(10);
+    db.run("INSERT INTO pointCodes (code, value, description, uses, timesUsed) VALUES (?, ?, ?, ?, 0)", [code, value, description, uses], err => {
+      if(err) {
+        sendEph(slackID, channelID, `An error has occured. Please try again or contact Eli if this keeps occuring.`);
+        reject(err);
+      } else {
+        sendEph(slackID, channelID, `Code: '${code}' created successfully!`);
+        resolve();
+      }
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode }

@@ -6,7 +6,7 @@ const { createMessageAdapter } = require('@slack/interactive-messages')
 const bodyParser = require('body-parser')
 const path = require('path');
 var slackSlashCommand = require('./slackBot/slashCommands.js');
-var { recordOneOnOne, generateAttendanceUrl, sendError } = require('./slackBot/utils.js');
+var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
 var login = require('./login')
@@ -16,7 +16,7 @@ const slackSigningSecret = process.env.SLACK_SIGNING_SECRET
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 
 if (!slackSigningSecret || !slackAccessToken) {
-    throw new Error('A Slack signing secret and access token are required to run this app.');
+  throw new Error('A Slack signing secret and access token are required to run this app.');
 }
 
 let urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -30,19 +30,19 @@ app.set('view engine', 'jade');
 
 app.set('trust proxy', 1)
 app.use(session({
-    secret: process.env["SESSION_SECRET"],
-    cookie: {
-        maxAge:30 * 60 * 1000,
-        httpOnly: true
-    },
-    rolling: true,
-    resave: true,
-    saveUninitialized: true,
+  secret: process.env["SESSION_SECRET"],
+  cookie: {
+    maxAge: 30 * 60 * 1000,
+    httpOnly: true
+  },
+  rolling: true,
+  resave: true,
+  saveUninitialized: true,
 }))
 
 // Triangle endpoints
 app.get('/', function (req, res, next) {
-    res.render('home', { title: 'Home' })
+  res.render('home', { title: 'Home' })
 })
 
 app.use('/admin', adminPages);
@@ -56,42 +56,76 @@ app.use('/slack/actions', slackInteractions.expressMiddleware());
 app.post('/slack/commands', bodyParser.urlencoded({ extended: false }), slackSlashCommand);
 
 app.get('/slack/sendWeekly', async (req, res) => {
-    let data = await genWeekly();
-    sendWeekly();
-    res.send(data);
+  let data = await genWeekly();
+  sendWeekly();
+  res.send(data);
 });
 
 slackInteractions.action({ type: 'dialog_submission' }, (payload, respond) => {
+  if (payload.callback_id === 'oneonone_submit') {
+    console.log("oneonones")
     recordOneOnOne(payload)
-        .then(() => {
-            respond({ text: `Successfully logged your one-on-one with <@${payload.submission.user.toString()}>!` });
-        }).catch((errCode) => {
-            if (errCode == 422) {
-                respond({ text: `It looks like you already logged your one-on-one with <@${payload.submission.user.toString()}>. If this seems like an error please contact Eli.` });
-            } else if (errCode === 425) {
-                respond({ text: "Your comment cannot be blank! Please try submitting the form again." });
-            } else if (errCode === 426) {
-                respond({ text: "You cannot log a one-on-one with yourself!" });
-            } else {
-                respond({ text: "An error has occured! Please try again or contact Eli if this keeps occuring. Error code: " + errCode });
-            }
-        })
+      .then(() => {
+        respond({ text: `Successfully logged your one-on-one with <@${payload.submission.user.toString()}>!` });
+      }).catch((errCode) => {
+        if (errCode == 422) {
+          respond({ text: `It looks like you already logged your one-on-one with <@${payload.submission.user.toString()}>. If this seems like an error please contact Eli.` });
+        } else if (errCode === 425) {
+          respond({ text: "Your comment cannot be blank! Please try submitting the form again." });
+        } else if (errCode === 426) {
+          respond({ text: "You cannot log a one-on-one with yourself!" });
+        } else {
+          respond({ text: "An error has occured! Please try again or contact Eli if this keeps occuring. Error code: " + errCode });
+        }
+      })
+  } 
 });
 
-slackInteractions.action('pick_committee', (payload, respond) => {
-    generateAttendanceUrl(payload.user.id, payload.actions[0].selected_options[0].value).then((url) => {
-        respond({
-            text: "Use this link to record attendance: " + url + "\nThis will expire in 24 hours."
-        })
-    }).catch((err) => {
-        respond({
-            text: "An error has occured! Please try again or contact Eli if this keeps occuring."
-        })
+slackInteractions.viewSubmission('createCode_submit', payload => {
+  let state = payload.view.state.values;
+  let value = parseInt(state.value.value_input.value);
+  let description = state.description.description_input.value;
+  let uses = parseInt(state.uses.uses_input.value);
+
+
+  let error = false;
+  let errors = {};
+  if(isNaN(value)) {
+    error = true;
+    errors['value'] = "'Value' must be a number";
+  }
+  if(isNaN(uses)) {
+    error = true;
+    errors['uses'] = "'Uses' must be a number";
+  }
+
+  if(error) {
+    return Promise.resolve({
+      response_action: "errors",
+      errors: errors
     })
+  } else {
+    createPointsCode(payload.user.id, payload.view.private_metadata, value, description, uses);
+    return Promise.resolve({
+      response_action: "clear"
+    })
+  }
+})
+
+slackInteractions.action('pick_committee', (payload, respond) => {
+  generateAttendanceUrl(payload.user.id, payload.actions[0].selected_options[0].value).then((url) => {
+    respond({
+      text: "Use this link to record attendance: " + url + "\nThis will expire in 24 hours."
+    })
+  }).catch((err) => {
+    respond({
+      text: "An error has occured! Please try again or contact Eli if this keeps occuring."
+    })
+  })
 
 })
 
 const port = process.env.PORT || 5000;
 http.createServer(app).listen(port, () => {
-    console.log(`server listening on port ${port}`);
+  console.log(`server listening on port ${port}`);
 });

@@ -1,6 +1,6 @@
 const { record_dialog, createCode_dialog, attendanceCommitteeChoice } = require('./dialogs')
 const { WebClient } = require('@slack/client')
-var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute } = require('./utils.js')
+var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute, redeemCode, sumPoints } = require('./utils.js')
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 const web = new WebClient(slackAccessToken);
 const moment = require('moment-timezone');
@@ -81,9 +81,8 @@ function slackSlashCommand(req, res, next) {
     })
 
   } else if (command === "/takeattendance") {
-    console.log("EEE")
     isChair(req.body.user_id).then((committees) => {
-      if(committees.length === 1) {
+      if (committees.length === 1) {
         generateAttendanceUrl(req.body.user_id, committees[0]).then((url) => {
           res.send("Use this link to record attendance: " + url + "\nThis will expire in 24 hours.");
         }).catch((err) => {
@@ -96,23 +95,23 @@ function slackSlashCommand(req, res, next) {
         committees.forEach((committee) => {
           let text = committee;
           let value = committee;
-          if(committee === "secretary") {
+          if (committee === "secretary") {
             text = "general";
             value = "active";
           }
-          dialogJson.attachments[0].actions[0].options.push({text: text, value: value})
+          dialogJson.attachments[0].actions[0].options.push({ text: text, value: value })
         })
         res.json(dialogJson);
       }
     }).catch((err) => {
-      if(err === "not chair") {
+      if (err === "not chair") {
         res.send("You are not a committee chair. If this is an error, please contact Eli.")
       } else {
         console.log(err)
         sendError(res, 426);
       }
     })
-  } else if(command === '/createcode') {
+  } else if (command === '/createcode') {
     isAttribute(req.body.user_id, 'eboard').then(() => {
       let modalJson = Object.assign({}, createCode_dialog);
       modalJson.private_metadata = req.body.channel_id;
@@ -124,12 +123,37 @@ function slackSlashCommand(req, res, next) {
       }).catch((error) => {
         console.log(error);
         sendError(res, 421);
-      });  
+      });
     }).catch(() => {
       res.send("Unable to run this command. If this keeps occuring, please contact Eli.")
     })
-  } else if(command === '/redeem') {
+  } else if (command === '/redeem') {
 
+    let args = req.body.text.split(' ');
+    if (req.body.text === '') {
+      res.send("Please provide a code. The usage for this command is '/redeem <code>'")
+    } else if (args.length > 1) {
+      res.send("Invalid input. Please provide only one code.");
+    } else {
+      let code = args[0];
+      redeemCode(req.body.user_id, code).then((newPoints) => {
+        res.send(`Points redeemed successfully! You now have ${newPoints} points.`);
+      }).catch((err) => {
+        if (err === "used too much") {
+          res.send("This code has already been used. If this is an error, please contact Eli.")
+        } else if (err === "user already used") {
+          res.send("It seems you have already redeemed this code. If this is an error, please contact Eli.")
+        } else {
+          res.send("Unable to redeem points. If this is an error, please contact Eli.")
+        }
+      })
+    }
+  } else if (command === '/points') {
+    sumPoints(req.body.user_id).then((points) => {
+      res.send(`You have ${points} points.`);
+    }).catch(() => {
+      res.send("An error has occured. Please try again or contact Eli if this keeps occuring.");
+    })
   } else {
     next();
   }

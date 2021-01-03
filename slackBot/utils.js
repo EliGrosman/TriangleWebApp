@@ -227,7 +227,7 @@ function isChair(slackID) {
         if (row) result.push(committee);
         checked++;
         if (checked === committees.length) {
-          if(result.length === 0) reject("not chair")
+          if (result.length === 0) reject("not chair")
           else resolve(result);
         }
       })
@@ -268,16 +268,16 @@ function generateAttendanceUrl(slackID, committee) {
 async function getAttendanceData() {
   let data = [];
   let asyncDb = await createDbConnection("./database.db");
-  
+
   let tokens = await asyncDb.all("SELECT DISTINCT token, meeting, generatedTime FROM attendanceTokens");
   for (let i = 0; i < tokens.length; i++) {
     let row = tokens[i];
     let attendanceData = await asyncDb.all("SELECT slackID, here, excused FROM attendance WHERE token = ?", [row.token]);
     let takenBy = await asyncDb.all("SELECT DISTINCT takenBY FROM attendance WHERE token = ?", [row.token])
     takenBy = takenBy.map((el) => {
-      return(el.takenBy);
+      return (el.takenBy);
     })
-    if(attendanceData.length > 0) {
+    if (attendanceData.length > 0) {
       let attendance = { token: row.token, meeting: row.meeting === 'active' ? 'general' : row.meeting, time: row.generatedTime, takenBy: takenBy, attendance: attendanceData }
       data.push(attendance);
     }
@@ -288,19 +288,19 @@ async function getAttendanceData() {
 async function getAttendanceForToken(token) {
   let asyncDb = await createDbConnection("./database.db");
   let data = await asyncDb.all("SELECT * from attendance WHERE token = ?", [token]);
-  for(let i = 0; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     let member = data[i];
     let fullname = await getFullname(member.slackID);
     member.fullname = fullname;
   }
-  return(data);
+  return (data);
 }
 
 async function getFullname(slackID) {
   let asyncDb = await createDbConnection("./database.db");
   let data = await asyncDb.get("SELECT fullname FROM people WHERE slackID = ?", [slackID]);
 
-  return(data.fullname);
+  return (data.fullname);
 }
 
 function createDbConnection(filename) {
@@ -313,7 +313,7 @@ function createDbConnection(filename) {
 function checkLoginToken(token) {
   return new Promise((resolve, reject) => {
     db.get("SELECT * FROM loginTokens WHERE token = ?", [token], (err, row) => {
-      if(err || !row) {
+      if (err || !row) {
         reject();
       } else {
         resolve();
@@ -325,11 +325,11 @@ function checkLoginToken(token) {
 function isAttribute(slackID, attribute) {
   attribute = attribute.toLowerCase();
   return new Promise((resolve, reject) => {
-    if(!attributes.includes(attribute)) {
+    if (!attributes.includes(attribute)) {
       reject();
     } else {
       db.get(`SELECT * FROM people WHERE slackID = ? AND ${attribute} = 1`, [slackID], (err, row) => {
-        if(err || !row) {
+        if (err || !row) {
           reject();
         } else {
           resolve();
@@ -343,7 +343,7 @@ function createPointsCode(slackID, channelID, value, description, uses) {
   return new Promise((resolve, reject) => {
     let code = generateToken(10);
     db.run("INSERT INTO pointCodes (code, value, description, uses, timesUsed) VALUES (?, ?, ?, ?, 0)", [code, value, description, uses], err => {
-      if(err) {
+      if (err) {
         sendEph(slackID, channelID, `An error has occured. Please try again or contact Eli if this keeps occuring.`);
         reject(err);
       } else {
@@ -354,4 +354,61 @@ function createPointsCode(slackID, channelID, value, description, uses) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode }
+function redeemCode(slackID, code) {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT uses, timesUsed FROM pointCodes WHERE code = ?", [code], (err, row) => {
+      console.log(row);
+      if (err || !row) {
+        reject(err);
+      } else {
+        let timesUsed = row.timesUsed;
+        if (row.uses === timesUsed) {
+          reject("used too much");
+        } else {
+          db.get("SELECT * FROM points WHERE slackID = ? AND code = ?", [slackID, code], (err, row) => {
+            if (err || row) {
+              reject("user already used");
+            } else {
+              db.run("UPDATE pointCodes SET timesUsed = ? WHERE code = ?", [timesUsed + 1, code], err => {
+                if (err) {
+                  reject(err);
+                } else {
+                  db.run("INSERT INTO points (slackID, code) VALUES (?, ?)", [slackID, code], err => {
+                    if (err) {
+                      reject(err)
+                    } else {
+                      sumPoints(slackID).then((points) => {
+                        resolve(points);
+                      }).catch(() => {
+                        reject();
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          })
+        }
+      }
+    })
+  })
+}
+
+function sumPoints(slackID) {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT value FROM points p INNER JOIN pointCodes pc ON p.code = pc.code WHERE p.slackID = ?", [slackID], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        let sum = 0;
+        rows.forEach(row => {
+          sum += row.value;
+        })
+        // TODO: add points from attendance.
+        resolve(sum);
+      }
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints }

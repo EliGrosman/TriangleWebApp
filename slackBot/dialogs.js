@@ -266,6 +266,10 @@ exports.forMember_block = {
 
     ],
     "action_id": "static_select-action"
+  },
+  hint: {
+    type: "plain_text",
+    text: "Who are you nominating with this purchase?"
   }
 }
 

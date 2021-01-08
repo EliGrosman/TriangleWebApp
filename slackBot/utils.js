@@ -12,6 +12,7 @@ const committees = ["recruitment", "events", "engineering", "fundraising", "secr
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 
 const fundGoal = 10000;
+const attendancePointVal = 10;
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -409,20 +410,32 @@ function sumPoints(slackID) {
             reject(err);
           } else {
             let purchases = rows;
-            let sum = 0;
-            codes.forEach(row => {
-              sum += row.value;
-            })
-
-            purchases.forEach(row => {
-              if (row.customVal > 0) {
-                sum -= row.customVal;
+            db.get("SELECT COUNT(*) AS count FROM attendance WHERE slackID = ? AND here = 1", [slackID], (err, attendance) => {
+              if(err || !attendance) {
+                reject(err);
               } else {
-                sum -= row.itemVal;
-              }
+                let sum = 0;
 
+                // add points from codes
+                codes.forEach(row => {
+                  sum += row.value;
+                })
+    
+                // add points from attendance
+                sum += attendance.count * attendancePointVal;
+
+                // subtract points from purchases
+                purchases.forEach(row => {
+                  if (row.customVal > 0) {
+                    sum -= row.customVal;
+                  } else {
+                    sum -= row.itemVal;
+                  }
+                })
+
+                resolve(sum);
+              }
             })
-            resolve(sum);
           }
         })
       }
@@ -461,8 +474,8 @@ function purchaseItem(slackID, itemID, customVal, forMember) {
         reject();
       } else {
         let value = row.itemVal;
-        if(row.customVal) {
-          value = row.customVal;
+        if(customVal) {
+          value = customVal;
         }
         let itemName = row.itemName;
         sumPoints(slackID).then((points) => {
@@ -653,7 +666,6 @@ function sendNomination(toSlackID, fromSlackID, challengeName, message) {
     text += `Their message says: '${message}'`;
   } 
   text += `\n Send proof of completion to the challenges channel or to <@${fromSlackID}> directly!`
-  console.log(text)
   sendDM(toSlackID, text);
 }
 

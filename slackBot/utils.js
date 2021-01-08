@@ -623,7 +623,7 @@ function updateShopItem(itemID, attribute, value) {
 
 function addEmptyItem() {
   return new Promise((resolve, reject) => {
-    db.run("INSERT INTO shopItems (itemName, customVal, forMember) VALUES (' ', 0, 0)", [], (err) => {
+    db.run("INSERT INTO shopItems (itemName, customVal, forMember, message) VALUES (' ', 0, 0, 0)", [], (err) => {
       if (err) {
         reject();
       } else {

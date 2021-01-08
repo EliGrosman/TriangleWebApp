@@ -1,0 +1,52 @@
+doctype html
+html(lang='en')
+  include shared/head.jade
+  +head(title)
+  body
+    include shared/navbar.jade
+    +head("shop")
+    div(class="container")
+      table(class="editUsersTable table table-dark table-striped")
+        thead  
+          tr
+            th(scope="col") Item Name
+            th(scope="col") Desc
+            th(scope="col") Value
+            th(scope="col") Custom Value
+            th(scope="col") For Member
+            th(scope="col")
+        tbody
+          each item, i in data
+            tr(scope="row")
+              td
+                input(type="text", name=item.id + "_itemName", value=item.itemName, onfocusout=`update('${item.id}', 'itemName', true)` class="chair_text")
+              td
+                input(type="text", name=item.id + "_itemDesc", value=item.itemDesc, onfocusout=`update('${item.id}', 'itemDesc', true)` class="chair_text")
+              td
+                input(type="text", name=item.id + "_itemVal", value=item.itemVal, onfocusout=`update('${item.id}', 'itemVal', true)` class="chair_text")
+              td 
+                input(type="checkbox" name=item.customVal + "_customVal" value="true", checked=item.customVal ? true : false, onClick=`update('${item.id}', 'customVal')`)
+              td 
+                input(type="checkbox" name=item.customVal + "_forMember" value="true", checked=item.forMember ? true : false, onClick=`update('${item.id}', 'forMember')`)
+              td
+                button(onClick=`deleteItem(${item.id})`) Delete
+      button(onclick='addItem()') Add New Item
+script.
+  function update(itemID, attribute, val) {
+    if(val) {
+      let text = document.getElementsByName(itemID + "_" + attribute);
+      console.log(text)
+      window.open(`/admin/shop/update?attribute=${attribute}&id=${itemID}&value=${text[0].value}`, "_self")
+    } else {
+      window.open(`/admin/shop/update?attribute=${attribute}&id=${itemID}`, "_self")
+    }
+  }
+
+  function addItem() {
+    window.open('/admin/shop/addItem', '_self')
+  }
+
+  function deleteItem(itemID) {
+    window.open(`/admin/shop/deleteItem?id=${itemID}`, '_self')
+  }
+

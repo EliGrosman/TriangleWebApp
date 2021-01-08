@@ -1,5 +1,5 @@
 const { default: Axios } = require('axios');
-const { promiseImpl } = require('ejs');
+const { promiseImpl, resolveInclude } = require('ejs');
 const moment = require('moment-timezone');
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
@@ -413,7 +413,7 @@ function sumPoints(slackID) {
             })
 
             purchases.forEach(row => {
-              if(row.customVal > 0) {
+              if (row.customVal > 0) {
                 sum -= row.customVal;
               } else {
                 sum -= row.itemVal;
@@ -544,16 +544,16 @@ function getNextPage(itemID) {
         } else if (data.forMember === 1) {
           let forMember = Object.assign({}, forMember_block);
           forMember.element.options = [];
-            for(let i = 0; i < nominees.length; i++) {
-              forMember.element.options.push({
-                "text": {
-                  "type": "plain_text",
-                  "text": nominees[i].fullname,
-                  "emoji": true
-                },
-                "value": nominees[i].slackID
-              })
-            }
+          for (let i = 0; i < nominees.length; i++) {
+            forMember.element.options.push({
+              "text": {
+                "type": "plain_text",
+                "text": nominees[i].fullname,
+                "emoji": true
+              },
+              "value": nominees[i].slackID
+            })
+          }
           modal.blocks.push(forMember);
         }
         resolve(modal);
@@ -562,4 +562,51 @@ function getNextPage(itemID) {
   })
 }
 
-    module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage }
+function updateShopItem(itemID, attribute, value) {
+  return new Promise((resolve, reject) => {
+    if (!value) {
+      db.run(`UPDATE shopItems SET ${attribute} = ((${attribute} | 1) - (${attribute} & 1)) WHERE id = ?`, [itemID],
+        (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve("Updated!");
+          }
+        })
+    } else {
+      db.run(`UPDATE shopItems SET ${attribute} = ? WHERE id = ?`, [value, itemID], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve("Updated!");
+        }
+      })
+    }
+  })
+}
+
+function addEmptyItem() {
+  return new Promise((resolve, reject) => {
+    db.run("INSERT INTO shopItems (itemName) VALUES (' ')", [], (err) => {
+      if (err) {
+        reject();
+      } else {
+        resolve();
+      }
+    })
+  })
+}
+
+function deleteShopitem(itemID) {
+  return new Promise((resolve, reject) => {
+    db.run("DELETE FROM shopItems WHERE id = ?", [itemID], (err) => {
+      if (err) {
+        reject();
+      } else {
+        resolve();
+      }
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem }

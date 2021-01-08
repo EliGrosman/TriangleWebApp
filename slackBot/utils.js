@@ -662,9 +662,9 @@ function calculateFund() {
 }
 
 function sendNomination(toSlackID, fromSlackID, challengeName, message) {
-  let text = `You have been nominated for '${challengeName}' by <@${fromSlackID}>!`
+  let text = `You have been nominated for '${challengeName}' by <@${fromSlackID}>! `
   if(message) {
-    text += `Their message says: '${message}'`;
+    text += `\nTheir message says: '${message}'`;
   } 
   text += `\n Send proof of completion to the challenges channel or to <@${fromSlackID}> directly!`
   sendDM(toSlackID, text);

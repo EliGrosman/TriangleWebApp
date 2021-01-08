@@ -13,6 +13,7 @@ const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruit
 
 const fundGoal = 10000;
 const attendancePointVal = 10;
+const oneOnOnesPointVal = 20;
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -411,27 +412,33 @@ function sumPoints(slackID) {
           } else {
             let purchases = rows;
             db.get("SELECT COUNT(*) AS count FROM attendance WHERE slackID = ? AND here = 1", [slackID], (err, attendance) => {
-              if(err || !attendance) {
+              if (err || !attendance) {
                 reject(err);
               } else {
-                let sum = 0;
+                getCompleted(slackID).then(oneOnOnes => {
+                  let sum = 0;
 
-                // add points from codes
-                codes.forEach(row => {
-                  sum += row.value;
-                })
-    
-                // add points from attendance
-                sum += attendance.count * attendancePointVal;
+                  // add points from codes
+                  codes.forEach(row => {
+                    sum += row.value;
+                  })
 
-                // subtract points from purchases
-                purchases.forEach(row => {
-                  if (row.customVal > 0) {
-                    sum -= row.customVal;
-                  } else {
-                    sum -= row.itemVal;
-                  }
+                  // add points from attendance
+                  sum += attendance.count * attendancePointVal;
+
+                  // add points from one on ones
+                  sum += oneOnOnes.length * oneOnOnesPointVal;
+
+                  // subtract points from purchases
+                  purchases.forEach(row => {
+                    if (row.customVal > 0) {
+                      sum -= row.customVal;
+                    } else {
+                      sum -= row.itemVal;
+                    }
+                  })
                 })
+
 
                 resolve(sum);
               }
@@ -474,7 +481,7 @@ function purchaseItem(slackID, itemID, customVal, forMember, message) {
         reject();
       } else {
         let value = row.itemVal;
-        if(customVal) {
+        if (customVal) {
           value = customVal;
         }
         let itemName = row.itemName;
@@ -501,13 +508,13 @@ function populateShopModal(itemID, points) {
     getItemInfo(itemID).then(data => {
       calculateFund().then(fund => {
         let percent = (fund / fundGoal) * 100;
-        let numBoxes = Math.ceil((percent /10)) >= 10 ? 10 : Math.ceil((percent /10));
+        let numBoxes = Math.ceil((percent / 10)) >= 10 ? 10 : Math.ceil((percent / 10));
         let goalBar = "";
-        for(let i = 0; i < numBoxes; i++) {
+        for (let i = 0; i < numBoxes; i++) {
           goalBar += '█';
         }
 
-        for(let i = 0; i < 10 - numBoxes; i++) {
+        for (let i = 0; i < 10 - numBoxes; i++) {
           goalBar += '_';
         }
 
@@ -515,11 +522,11 @@ function populateShopModal(itemID, points) {
         modal.private_metadata = "" + data.id;
 
         modal.blocks[0].text.text = `You have ${points} points!`;
-        modal.blocks[2].text.text =  `We are ${Math.ceil(percent)}% to our goal to get a dunk tank! \n ${goalBar} ${fund}/10,000 points`
+        modal.blocks[2].text.text = `We are ${Math.ceil(percent)}% to our goal to get a dunk tank! \n ${goalBar} ${fund}/10,000 points`
         modal.blocks[4].fields[0].text = `*Item:*\n ${data.itemName}`
         modal.blocks[4].fields[1].text = `*Value:*\n ${!data.customVal ? data.itemVal : 'Custom value'}`
         modal.blocks[4].fields[2].text = `*Description:*\n ${data.itemDesc}`
-  
+
         resolve(modal);
       })
     }).catch(() => {
@@ -538,7 +545,7 @@ function shopGoBack(currentItemID) {
       if (data[currentIndex - 1]) {
         resolve(data[currentIndex - 1].id);
       } else {
-        resolve(data[data.length-1].id);
+        resolve(data[data.length - 1].id);
       }
     })
   }).catch(err => {
@@ -573,10 +580,10 @@ function getNextPage(itemID) {
       getCommitteeMembers("nominee").then(nominees => {
         if (data.customVal === 1) {
           modal.blocks.push(customVal_block);
-        } 
+        }
         if (data.message === 1) {
           modal.blocks.push(message_block);
-        } 
+        }
         if (data.forMember === 1) {
           let forMember = Object.assign({}, forMember_block);
           forMember.element.options = [];
@@ -648,7 +655,7 @@ function deleteShopitem(itemID) {
 function calculateFund() {
   return new Promise((resolve, reject) => {
     db.all("SELECT p.customVal AS value FROM purchases p INNER JOIN shopItems s ON p.itemID = s.id WHERE s.itemName = 'Dunk Tank Fund'", [], (err, rows) => {
-      if(err || !rows) {
+      if (err || !rows) {
         reject();
       } else {
         let sum = 0;
@@ -663,9 +670,9 @@ function calculateFund() {
 
 function sendNomination(toSlackID, fromSlackID, challengeName, message) {
   let text = `You have been nominated for '${challengeName}' by <@${fromSlackID}>! `
-  if(message) {
+  if (message) {
     text += `\nTheir message says: '${message}'`;
-  } 
+  }
   text += `\n Send proof of completion to the challenges channel or to <@${fromSlackID}> directly!`
   sendDM(toSlackID, text);
 }

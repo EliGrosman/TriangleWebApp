@@ -467,7 +467,7 @@ function getItemInfo(id) {
   })
 }
 
-function purchaseItem(slackID, itemID, customVal, forMember) {
+function purchaseItem(slackID, itemID, customVal, forMember, message) {
   return new Promise((resolve, reject) => {
     db.get('SELECT itemVal, itemName FROM shopItems WHERE id = ?', [itemID], (err, row) => {
       if (err || !row) {
@@ -484,7 +484,8 @@ function purchaseItem(slackID, itemID, customVal, forMember) {
           } else {
             let cusVal = customVal ? customVal : 0;
             let forMem = forMember ? forMember : "N/A";
-            db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember) VALUES(?, ?, ?, ?)', [slackID, itemID, cusVal, forMem], (err) => {
+            let mess = message ? message : "N/A";
+            db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember, message) VALUES(?, ?, ?, ?, ?)', [slackID, itemID, cusVal, forMem, mess], (err) => {
               if (err) reject();
               else resolve(itemName);
             })

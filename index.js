@@ -130,7 +130,7 @@ slackInteractions.viewSubmission('nextPage_submit', payload => {
       errors: { customVal: "'Custom Value' must be a number." }
     })
   }
-  purchaseItem(slackID, itemID, customVal, forMember).then((itemName) => {
+  purchaseItem(slackID, itemID, customVal, forMember, message).then((itemName) => {
     sumPoints(slackID).then(newPoints => {
       populateShopModal(itemID, newPoints).then(newView => {
         if(forMember) 

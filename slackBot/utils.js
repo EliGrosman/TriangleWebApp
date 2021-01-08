@@ -671,6 +671,7 @@ function sendNomination(toSlackID, fromSlackID, challengeName, message) {
   if (message) {
     text += `\nTheir message says: '${message}'`;
   }
+  text += `\n If you need more information on how to complete this challenge, type '/shop' to see its description or check the pinned post in the challenges channel.`
   text += `\n Send proof of completion to the challenges channel or to <@${fromSlackID}> directly!`
   sendDM(toSlackID, text);
 }

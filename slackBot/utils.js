@@ -437,10 +437,8 @@ function sumPoints(slackID) {
                       sum -= row.itemVal;
                     }
                   })
+                  resolve(sum);
                 })
-
-
-                resolve(sum);
               }
             })
           }

@@ -7,7 +7,7 @@ const { WebClient } = require('@slack/client')
 const bodyParser = require('body-parser')
 const path = require('path');
 var slackSlashCommand = require('./slackBot/slashCommands.js');
-var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode, purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage } = require('./slackBot/utils.js');
+var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode, purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage, sendNomination, sendEph } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
 var login = require('./login');
@@ -122,24 +122,47 @@ slackInteractions.viewSubmission('nextPage_submit', payload => {
   let stateValues = payload.view.state.values;
   let forMember = stateValues.forMember ? stateValues.forMember['static_select-action'].selected_option.value : undefined;
   let customVal = stateValues.customVal ? stateValues.customVal.value_input.value : undefined;
+  let message = stateValues.message ? stateValues.message.value_input.value : undefined;
+
   if (customVal && !parseInt(customVal)) {
     return Promise.resolve({
       response_action: "errors",
       errors: { customVal: "'Custom Value' must be a number." }
     })
   }
-  purchaseItem(slackID, itemID, customVal, forMember).then(() => {
+  purchaseItem(slackID, itemID, customVal, forMember).then((itemName) => {
     sumPoints(slackID).then(newPoints => {
       populateShopModal(itemID, newPoints).then(newView => {
+        if(forMember) 
+          sendNomination(forMember, slackID, itemName, message);
         newView.blocks[0].text.text = "Purchase successful!\n" + newView.blocks[0].text.text;
         web.views.open({
           trigger_id: payload.trigger_id,
           view: newView
+        }).catch((err) => {
+          console.log(err)
         })
       })
     })
   }).catch((err) => {
-    console.log(err)
+    sumPoints(slackID).then(points => {
+      populateShopModal(itemID, points).then(newView => {
+        let errMessage = "";
+        if (err === "not enough") {
+          errMessage = "You do not have enough points for this item.\n";
+        } else {
+          errMessage = "An error has occured. Please try again or contact Eli.\n";
+        }
+        //sendEph(slackID, channelID, errMessage)
+        newView.blocks[0].text.text = errMessage + newView.blocks[0].text.text;
+        web.views.open({
+          trigger_id: payload.trigger_id,
+          view: newView
+        }).catch((err) => {
+          console.log(err)
+        })
+      })
+    })
   })
 })
 
@@ -163,7 +186,7 @@ slackInteractions.action({ type: 'button' }, (payload, respond) => {
 
   if (action === "purchase") {
     getItemInfo(currentItemID).then(data => {
-      if (data.customVal === 1 || data.forMember === 1) {
+      if (data.customVal === 1 || data.forMember === 1 || data.message === 1) {
         getNextPage(currentItemID).then(newView => {
           web.views.update({
             view_id: payload.view.id,
@@ -189,21 +212,20 @@ slackInteractions.action({ type: 'button' }, (payload, respond) => {
               if (err === "not enough") {
                 newView.blocks[0].text.text = "You do not have enough points for this item.\n" + newView.blocks[0].text.text;
               } else {
-                console.log(err)
                 newView.blocks[0].text.text = "An error has occured. Please try again or contact Eli.\n" + newView.blocks[0].text.text;
               }
               web.views.update({
                 view_id: payload.view.id,
                 hash: payload.view.hash,
                 view: newView
+              }).catch((err) => {
+                console.log(err)
               })
             })
           })
         })
       }
     })
-  } else if (action === "purchase_withExtraInfo") {
-
   } else if (action === "back") {
     shopGoBack(currentItemID).then(newItemID => {
       sumPoints(slackID).then(points => {

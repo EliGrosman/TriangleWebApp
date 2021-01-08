@@ -189,7 +189,6 @@ exports.shop_modal = {
             "emoji": true,
             "text": "Back"
           },
-          "style": "primary",
           "value": "click_me_123",
           "action_id": "back"
         },
@@ -200,7 +199,6 @@ exports.shop_modal = {
             "emoji": true,
             "text": "Next"
           },
-          "style": "danger",
           "value": "click_me_123",
           "action_id": "next"
         }
@@ -268,5 +266,26 @@ exports.forMember_block = {
 
     ],
     "action_id": "static_select-action"
+  }
+}
+
+exports.message_block = {
+  type: "input",
+  block_id: "message",
+  element: {
+    type: "plain_text_input",
+    action_id: "value_input",
+    placeholder: {
+      type: "plain_text",
+      text: " "
+    }
+  },
+  label: {
+    type: "plain_text",
+    text: "Message"
+  },
+  hint: {
+    type: "plain_text",
+    text: "Include the name of the song, dance, etc you want this person to do."
   }
 }

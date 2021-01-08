@@ -21,6 +21,7 @@
     "jade": "^1.11.0",
     "moment-timezone": "^0.5.32",
     "node-sqlite": "0.0.2-security",
+    "query-string": "^6.13.8",
     "sqlite": "^4.0.18",
     "sqlite3": "^5.0.0"
   }

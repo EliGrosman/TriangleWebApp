@@ -5,10 +5,13 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 const axios = require('axios')
 const { open } = require('sqlite');
-const { shop_modal, nextPage_modal, customVal_block, forMember_block } = require('./dialogs')
+const { shop_modal, nextPage_modal, customVal_block, forMember_block, message_block } = require('./dialogs')
+const queryString = require('query-string');
 
 const committees = ["recruitment", "events", "engineering", "fundraising", "secretary"];
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
+
+const fundGoal = 10000;
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -144,7 +147,7 @@ function sendDM(slackID, message) {
   return new Promise((resolve, reject) => {
     const slackAccessToken = process.env.BOT_USER_TOKEN
     let url = 'https://slack.com/api/chat.postMessage';
-    let data = `?token=${slackAccessToken}&channel=${slackID}&text=${message}`;
+    let data = `?token=${slackAccessToken}&channel=${slackID}&text=${message}&pretty=1`;
     axios.post(url + data).then((response) => {
       resolve(response);
     }).catch((err) => {
@@ -358,7 +361,6 @@ function createPointsCode(slackID, channelID, value, description, uses) {
 function redeemCode(slackID, code) {
   return new Promise((resolve, reject) => {
     db.get("SELECT uses, timesUsed FROM pointCodes WHERE code = ?", [code], (err, row) => {
-      console.log(row);
       if (err || !row) {
         reject(err);
       } else {
@@ -454,14 +456,16 @@ function getItemInfo(id) {
 
 function purchaseItem(slackID, itemID, customVal, forMember) {
   return new Promise((resolve, reject) => {
-    db.get('SELECT itemVal FROM shopItems WHERE id = ?', [itemID], (err, row) => {
+    db.get('SELECT itemVal, itemName FROM shopItems WHERE id = ?', [itemID], (err, row) => {
       if (err || !row) {
         reject();
       } else {
         let value = row.itemVal;
+        if(row.customVal) {
+          value = row.customVal;
+        }
+        let itemName = row.itemName;
         sumPoints(slackID).then((points) => {
-          console.log(slackID);
-          console.log(value)
           if (points < value) {
             reject("not enough")
           } else {
@@ -469,7 +473,7 @@ function purchaseItem(slackID, itemID, customVal, forMember) {
             let forMem = forMember ? forMember : "N/A";
             db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember) VALUES(?, ?, ?, ?)', [slackID, itemID, cusVal, forMem], (err) => {
               if (err) reject();
-              else resolve();
+              else resolve(itemName);
             })
           }
         })
@@ -481,14 +485,29 @@ function purchaseItem(slackID, itemID, customVal, forMember) {
 function populateShopModal(itemID, points) {
   return new Promise((resolve, reject) => {
     getItemInfo(itemID).then(data => {
-      let modal = Object.assign({}, shop_modal);
-      modal.private_metadata = "" + data.id;
-      modal.blocks[0].text.text = `You have ${points} points!`
-      modal.blocks[4].fields[0].text = `*Item:*\n ${data.itemName}`
-      modal.blocks[4].fields[1].text = `*Value:*\n ${data.itemVal}`
-      modal.blocks[4].fields[2].text = `*Description:*\n ${data.itemDesc}`
+      calculateFund().then(fund => {
+        let percent = (fund / fundGoal) * 100;
+        let numBoxes = Math.ceil((percent /10)) >= 10 ? 10 : Math.ceil((percent /10));
+        let goalBar = "";
+        for(let i = 0; i < numBoxes; i++) {
+          goalBar += '█';
+        }
 
-      resolve(modal);
+        for(let i = 0; i < 10 - numBoxes; i++) {
+          goalBar += '_';
+        }
+
+        let modal = Object.assign({}, shop_modal);
+        modal.private_metadata = "" + data.id;
+
+        modal.blocks[0].text.text = `You have ${points} points!`;
+        modal.blocks[2].text.text =  `We are ${Math.ceil(percent)}% to our goal to get a dunk tank! \n ${goalBar} ${fund}/10,000 points`
+        modal.blocks[4].fields[0].text = `*Item:*\n ${data.itemName}`
+        modal.blocks[4].fields[1].text = `*Value:*\n ${!data.customVal ? data.itemVal : 'Custom value'}`
+        modal.blocks[4].fields[2].text = `*Description:*\n ${data.itemDesc}`
+  
+        resolve(modal);
+      })
     }).catch(() => {
       reject();
     })
@@ -505,7 +524,7 @@ function shopGoBack(currentItemID) {
       if (data[currentIndex - 1]) {
         resolve(data[currentIndex - 1].id);
       } else {
-        resolve(currentItemID);
+        resolve(data[data.length-1].id);
       }
     })
   }).catch(err => {
@@ -523,7 +542,7 @@ function shopGoNext(currentItemID) {
       if (data[currentIndex + 1]) {
         resolve(data[currentIndex + 1].id);
       } else {
-        resolve(currentItemID);
+        resolve(data[0].id);
       }
     })
   }).catch(err => {
@@ -535,13 +554,16 @@ function getNextPage(itemID) {
   return new Promise((resolve, reject) => {
     getItemInfo(itemID).then(data => {
       let modal = JSON.parse(JSON.stringify(nextPage_modal));
-      console.log(modal);
       modal.blocks[0].text.text = `To purchase '${data.itemName}' we need some information:`;
       modal.private_metadata = "" + itemID;
       getCommitteeMembers("nominee").then(nominees => {
         if (data.customVal === 1) {
           modal.blocks.push(customVal_block);
-        } else if (data.forMember === 1) {
+        } 
+        if (data.message === 1) {
+          modal.blocks.push(message_block);
+        } 
+        if (data.forMember === 1) {
           let forMember = Object.assign({}, forMember_block);
           forMember.element.options = [];
           for (let i = 0; i < nominees.length; i++) {
@@ -587,7 +609,7 @@ function updateShopItem(itemID, attribute, value) {
 
 function addEmptyItem() {
   return new Promise((resolve, reject) => {
-    db.run("INSERT INTO shopItems (itemName) VALUES (' ')", [], (err) => {
+    db.run("INSERT INTO shopItems (itemName, customVal, forMember) VALUES (' ', 0, 0)", [], (err) => {
       if (err) {
         reject();
       } else {
@@ -609,4 +631,30 @@ function deleteShopitem(itemID) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem }
+function calculateFund() {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT p.customVal AS value FROM purchases p INNER JOIN shopItems s ON p.itemID = s.id WHERE s.itemName = 'Dunk Tank Fund'", [], (err, rows) => {
+      if(err || !rows) {
+        reject();
+      } else {
+        let sum = 0;
+        rows.forEach(row => {
+          sum += row.value;
+        })
+        resolve(sum);
+      }
+    })
+  })
+}
+
+function sendNomination(toSlackID, fromSlackID, challengeName, message) {
+  let text = `You have been nominated for '${challengeName}' by <@${fromSlackID}>!`
+  if(message) {
+    text += `Their message says: '${message}'`;
+  } 
+  text += `\n Send proof of completion to the challenges channel or to <@${fromSlackID}> directly!`
+  console.log(text)
+  sendDM(toSlackID, text);
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, sendEph, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem, sendNomination }

@@ -1,6 +1,6 @@
-const { record_dialog, createCode_dialog, attendanceCommitteeChoice } = require('./dialogs')
+const { record_dialog, createCode_dialog, attendanceCommitteeChoice, shop_modal } = require('./dialogs')
 const { WebClient } = require('@slack/client')
-var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute, redeemCode, sumPoints } = require('./utils.js')
+var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute, redeemCode, sumPoints, getShopItems, populateShopModal } = require('./utils.js')
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 const web = new WebClient(slackAccessToken);
 const moment = require('moment-timezone');
@@ -153,6 +153,24 @@ function slackSlashCommand(req, res, next) {
       res.send(`You have ${points} points.`);
     }).catch(() => {
       res.send("An error has occured. Please try again or contact Eli if this keeps occuring.");
+    })
+  } else if (command === '/shop') {
+    getShopItems().then((data) => {
+      sumPoints(req.body.user_id).then((points) => {
+        populateShopModal(data[0].id, points).then(shopJson => {
+          web.views.open({
+            trigger_id: req.body.trigger_id,
+            view: shopJson
+          }).then(() => {
+            res.send();
+          }).catch((error) => {
+            console.log(error);
+            sendError(res, 421);
+          });
+        });
+      })
+    }).catch(() => {
+      res.send("Unable to run this command. If this keeps occuring, please contact Eli.")
     })
   } else {
     next();

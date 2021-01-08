@@ -3,10 +3,11 @@ const http = require('http')
 const express = require('express')
 var session = require('express-session')
 const { createMessageAdapter } = require('@slack/interactive-messages')
+const { WebClient } = require('@slack/client')
 const bodyParser = require('body-parser')
 const path = require('path');
 var slackSlashCommand = require('./slackBot/slashCommands.js');
-var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode } = require('./slackBot/utils.js');
+var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode, purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage } = require('./slackBot/utils.js');
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
 var login = require('./login')
@@ -51,6 +52,7 @@ app.use('/admin', urlencodedParser, login);
 
 // Slack endpoints
 const slackInteractions = createMessageAdapter(slackSigningSecret);
+const web = new WebClient(slackAccessToken);
 
 app.use('/slack/actions', slackInteractions.expressMiddleware());
 app.post('/slack/commands', bodyParser.urlencoded({ extended: false }), slackSlashCommand);
@@ -78,7 +80,7 @@ slackInteractions.action({ type: 'dialog_submission' }, (payload, respond) => {
           respond({ text: "An error has occured! Please try again or contact Eli if this keeps occuring. Error code: " + errCode });
         }
       })
-  } 
+  }
 });
 
 slackInteractions.viewSubmission('createCode_submit', payload => {
@@ -90,16 +92,16 @@ slackInteractions.viewSubmission('createCode_submit', payload => {
 
   let error = false;
   let errors = {};
-  if(isNaN(value)) {
+  if (isNaN(value)) {
     error = true;
     errors['value'] = "'Value' must be a number";
   }
-  if(isNaN(uses)) {
+  if (isNaN(uses)) {
     error = true;
     errors['uses'] = "'Uses' must be a number";
   }
 
-  if(error) {
+  if (error) {
     return Promise.resolve({
       response_action: "errors",
       errors: errors
@@ -110,6 +112,33 @@ slackInteractions.viewSubmission('createCode_submit', payload => {
       response_action: "clear"
     })
   }
+})
+
+slackInteractions.viewSubmission('nextPage_submit', payload => {
+  let slackID = payload.user.id;
+  let itemID = payload.view.private_metadata;
+  let stateValues = payload.view.state.values;
+  let forMember = stateValues.forMember ? stateValues.forMember['static_select-action'].selected_option.value : undefined;
+  let customVal = stateValues.customVal ? stateValues.customVal.value_input.value : undefined;
+  if (customVal && !parseInt(customVal)) {
+    return Promise.resolve({
+      response_action: "errors",
+      errors: { customVal: "'Custom Value' must be a number." }
+    })
+  }
+  purchaseItem(slackID, itemID, customVal, forMember).then(() => {
+    sumPoints(slackID).then(newPoints => {
+      populateShopModal(itemID, newPoints).then(newView => {
+        newView.blocks[0].text.text = "Purchase successful!\n" + newView.blocks[0].text.text;
+        web.views.open({
+          trigger_id: payload.trigger_id,
+          view: newView
+        })
+      })
+    })
+  }).catch((err) => {
+    console.log(err)
+  })
 })
 
 slackInteractions.action('pick_committee', (payload, respond) => {
@@ -123,6 +152,83 @@ slackInteractions.action('pick_committee', (payload, respond) => {
     })
   })
 
+})
+
+slackInteractions.action({ type: 'button' }, (payload, respond) => {
+  let action = payload.actions[0].action_id;
+  let currentItemID = parseInt(payload.view.private_metadata);
+  let slackID = payload.user.id;
+
+  if (action === "purchase") {
+    getItemInfo(currentItemID).then(data => {
+      if (data.customVal === 1 || data.forMember === 1) {
+        getNextPage(currentItemID).then(newView => {
+          web.views.update({
+            view_id: payload.view.id,
+            hash: payload.view.hash,
+            view: newView
+          })
+        })
+      } else {
+        purchaseItem(slackID, currentItemID).then(() => {
+          sumPoints(slackID).then(newPoints => {
+            populateShopModal(currentItemID, newPoints).then(newView => {
+              newView.blocks[0].text.text = "Purchase successful!\n" + newView.blocks[0].text.text;
+              web.views.update({
+                view_id: payload.view.id,
+                hash: payload.view.hash,
+                view: newView
+              })
+            })
+          })
+        }).catch((err) => {
+          sumPoints(slackID).then(points => {
+            populateShopModal(currentItemID, points).then(newView => {
+              if (err === "not enough") {
+                newView.blocks[0].text.text = "You do not have enough points for this item.\n" + newView.blocks[0].text.text;
+              } else {
+                console.log(err)
+                newView.blocks[0].text.text = "An error has occured. Please try again or contact Eli.\n" + newView.blocks[0].text.text;
+              }
+              web.views.update({
+                view_id: payload.view.id,
+                hash: payload.view.hash,
+                view: newView
+              })
+            })
+          })
+        })
+      }
+    })
+  } else if (action === "purchase_withExtraInfo") {
+
+  } else if (action === "back") {
+    shopGoBack(currentItemID).then(newItemID => {
+      sumPoints(slackID).then(points => {
+        populateShopModal(newItemID, points).then(newView => {
+          web.views.update({
+            view_id: payload.view.id,
+            hash: payload.view.hash,
+            view: newView
+          })
+        })
+      })
+    }).catch(err => {
+      console.log(err);
+    });
+  } else if (action === "next") {
+    shopGoNext(currentItemID).then(newItemID => {
+      sumPoints(slackID).then(points => {
+        populateShopModal(newItemID, points).then(newView => {
+          web.views.update({
+            view_id: payload.view.id,
+            hash: payload.view.hash,
+            view: newView
+          })
+        })
+      })
+    });
+  }
 })
 
 const port = process.env.PORT || 5000;

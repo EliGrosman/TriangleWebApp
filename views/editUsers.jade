@@ -22,6 +22,7 @@ html(lang='en')
             th(scope="col") Engineering
             th(scope="col") Fundraising
             th(scope="col") Standards
+            th(scope="col") Nominee
             th(scope="col") Chairs
         tbody
           each member, i in data
@@ -49,6 +50,8 @@ html(lang='en')
                 input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_nominee" value="true", checked=member.nominee ? true : false, onClick=`update('nominee', '${member.slackID}')`)
               td
                 input(type="text", name=member.slackID + "_chair", value=member.chair, onfocusout=`updateChair('${member.slackID}')` class="chair_text")
 

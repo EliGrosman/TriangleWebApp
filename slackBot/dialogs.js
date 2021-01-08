@@ -34,21 +34,21 @@ exports.createCode_dialog = {
     type: 'plain_text',
     text: 'Create'
   },
-	blocks: [
-		{
-			type: "input",
-			block_id: "value",
-			element: {
+  blocks: [
+    {
+      type: "input",
+      block_id: "value",
+      element: {
         type: "plain_text_input",
         action_id: "value_input",
         placeholder: {
-					type: "plain_text",
-					text: " "
-				}
-			},
-		  label: {
-				type: "plain_text",
-				text: "Value"
+          type: "plain_text",
+          text: " "
+        }
+      },
+      label: {
+        type: "plain_text",
+        text: "Value"
       },
       hint: {
         type: "plain_text",
@@ -56,19 +56,19 @@ exports.createCode_dialog = {
       }
     },
     {
-			type: "input",
+      type: "input",
       block_id: "description",
-			element: {
+      element: {
         type: "plain_text_input",
         action_id: "description_input",
         placeholder: {
-					type: "plain_text",
-					text: " "
-				}
-			},
-		  label: {
-				type: "plain_text",
-				text: "Description"
+          type: "plain_text",
+          text: " "
+        }
+      },
+      label: {
+        type: "plain_text",
+        text: "Description"
       },
       hint: {
         type: "plain_text",
@@ -76,26 +76,26 @@ exports.createCode_dialog = {
       }
     },
     {
-			type: "input",
-			block_id: "uses",
-			element: {
+      type: "input",
+      block_id: "uses",
+      element: {
         type: "plain_text_input",
         action_id: "uses_input",
         placeholder: {
-					type: "plain_text",
-					text: " "
-				}
-			},
-		  label: {
-				type: "plain_text",
-				text: "Uses"
+          type: "plain_text",
+          text: " "
+        }
+      },
+      label: {
+        type: "plain_text",
+        text: "Uses"
       },
       hint: {
         type: "plain_text",
         text: "How many members can redeem this code?"
       }
-		}
-	]
+    }
+  ]
 };
 
 exports.attendanceCommitteeChoice = {
@@ -114,3 +114,159 @@ exports.attendanceCommitteeChoice = {
     }],
   }],
 };
+
+exports.shop_modal = {
+  type: 'modal',
+  callback_id: 'shop_submit',
+  title: {
+    type: 'plain_text',
+    text: 'Shop'
+  },
+  "blocks": [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "You have N points!"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "We are N% to our goal to get a dunk tank! \n ██████▁▁▁▁▁▁ n/10,000 points"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Item:*\n itemName"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Price:*\n itemVal"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Description:*\n itemDesc"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Purchase",
+            "emoji": true
+          },
+          "style": "primary",
+          "value": "click_me_123",
+          "action_id": "purchase"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "emoji": true,
+            "text": "Back"
+          },
+          "style": "primary",
+          "value": "click_me_123",
+          "action_id": "back"
+        },
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "emoji": true,
+            "text": "Next"
+          },
+          "style": "danger",
+          "value": "click_me_123",
+          "action_id": "next"
+        }
+      ]
+    }
+  ]
+}
+
+exports.nextPage_modal = {
+  type: 'modal',
+  callback_id: 'nextPage_submit',
+  title: {
+    type: 'plain_text',
+    text: 'Shop'
+  },
+  submit: {
+    type: 'plain_text',
+    text: 'Purchase'
+  },
+  "blocks": [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "To purchase X we need some more info:"
+      }
+    },
+    {
+      "type": "divider"
+    }
+  ]
+}
+
+exports.customVal_block = {
+  type: "input",
+  block_id: "customVal",
+  element: {
+    type: "plain_text_input",
+    action_id: "value_input",
+    placeholder: {
+      type: "plain_text",
+      text: " "
+    }
+  },
+  label: {
+    type: "plain_text",
+    text: "Custom Value"
+  },
+  hint: {
+    type: "plain_text",
+    text: "How many points do you want to spend?"
+  }
+}
+
+exports.forMember_block = {
+  type: "input",
+  block_id: "forMember",
+  label: {
+    type: "plain_text",
+    text: "For"
+  },
+  element: {
+    "type": "static_select",
+    "options": [
+
+    ],
+    "action_id": "static_select-action"
+  }
+}

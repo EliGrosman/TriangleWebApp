@@ -5,9 +5,10 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 const axios = require('axios')
 const { open } = require('sqlite');
+const { shop_modal, nextPage_modal, customVal_block, forMember_block } = require('./dialogs')
 
-const committees = ["recruitment", "events", "engineering", "fundraising", 'secretary'];
-const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards'];
+const committees = ["recruitment", "events", "engineering", "fundraising", "secretary"];
+const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -400,15 +401,165 @@ function sumPoints(slackID) {
       if (err) {
         reject(err);
       } else {
-        let sum = 0;
-        rows.forEach(row => {
-          sum += row.value;
+        let codes = rows;
+        db.all("SELECT s.itemVal AS itemVal, p.customVal AS customVal FROM purchases p INNER JOIN shopItems s ON p.itemId = s.id WHERE p.slackID = ?", [slackID], (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            let purchases = rows;
+            let sum = 0;
+            codes.forEach(row => {
+              sum += row.value;
+            })
+
+            purchases.forEach(row => {
+              if(row.customVal > 0) {
+                sum -= row.customVal;
+              } else {
+                sum -= row.itemVal;
+              }
+
+            })
+            resolve(sum);
+          }
         })
-        // TODO: add points from attendance.
-        resolve(sum);
       }
     })
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints }
+function getShopItems() {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM shopItems', [], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    })
+  })
+}
+
+function getItemInfo(id) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM shopItems WHERE id = ?', [id], (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(row);
+      }
+    })
+  })
+}
+
+function purchaseItem(slackID, itemID, customVal, forMember) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT itemVal FROM shopItems WHERE id = ?', [itemID], (err, row) => {
+      if (err || !row) {
+        reject();
+      } else {
+        let value = row.itemVal;
+        sumPoints(slackID).then((points) => {
+          console.log(slackID);
+          console.log(value)
+          if (points < value) {
+            reject("not enough")
+          } else {
+            let cusVal = customVal ? customVal : 0;
+            let forMem = forMember ? forMember : "N/A";
+            db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember) VALUES(?, ?, ?, ?)', [slackID, itemID, cusVal, forMem], (err) => {
+              if (err) reject();
+              else resolve();
+            })
+          }
+        })
+      }
+    })
+  })
+}
+
+function populateShopModal(itemID, points) {
+  return new Promise((resolve, reject) => {
+    getItemInfo(itemID).then(data => {
+      let modal = Object.assign({}, shop_modal);
+      modal.private_metadata = "" + data.id;
+      modal.blocks[0].text.text = `You have ${points} points!`
+      modal.blocks[4].fields[0].text = `*Item:*\n ${data.itemName}`
+      modal.blocks[4].fields[1].text = `*Value:*\n ${data.itemVal}`
+      modal.blocks[4].fields[2].text = `*Description:*\n ${data.itemDesc}`
+
+      resolve(modal);
+    }).catch(() => {
+      reject();
+    })
+  })
+}
+
+function shopGoBack(currentItemID) {
+  return new Promise((resolve, reject) => {
+    getShopItems().then(data => {
+      let currentIndex = data.findIndex(el => {
+        return (el.id === currentItemID);
+      })
+
+      if (data[currentIndex - 1]) {
+        resolve(data[currentIndex - 1].id);
+      } else {
+        resolve(currentItemID);
+      }
+    })
+  }).catch(err => {
+    resolve(err);
+  })
+}
+
+function shopGoNext(currentItemID) {
+  return new Promise((resolve, reject) => {
+    getShopItems().then(data => {
+      let currentIndex = data.findIndex(el => {
+        return (el.id === currentItemID);
+      })
+
+      if (data[currentIndex + 1]) {
+        resolve(data[currentIndex + 1].id);
+      } else {
+        resolve(currentItemID);
+      }
+    })
+  }).catch(err => {
+    resolve(err);
+  })
+}
+
+function getNextPage(itemID) {
+  return new Promise((resolve, reject) => {
+    getItemInfo(itemID).then(data => {
+      let modal = JSON.parse(JSON.stringify(nextPage_modal));
+      console.log(modal);
+      modal.blocks[0].text.text = `To purchase '${data.itemName}' we need some information:`;
+      modal.private_metadata = "" + itemID;
+      getCommitteeMembers("nominee").then(nominees => {
+        if (data.customVal === 1) {
+          modal.blocks.push(customVal_block);
+        } else if (data.forMember === 1) {
+          let forMember = Object.assign({}, forMember_block);
+          forMember.element.options = [];
+            for(let i = 0; i < nominees.length; i++) {
+              forMember.element.options.push({
+                "text": {
+                  "type": "plain_text",
+                  "text": nominees[i].fullname,
+                  "emoji": true
+                },
+                "value": nominees[i].slackID
+              })
+            }
+          modal.blocks.push(forMember);
+        }
+        resolve(modal);
+      })
+    })
+  })
+}
+
+    module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage }

@@ -137,20 +137,20 @@ function slackSlashCommand(req, res, next) {
     } else {
       let code = args[0];
       redeemCode(req.body.user_id, code).then((newPoints) => {
-        res.send(`Points redeemed successfully! You now have ${newPoints} points.`);
+        res.send(`T-Bucks redeemed successfully! You now have ${newPoints} T-Bucks.`);
       }).catch((err) => {
         if (err === "used too much") {
           res.send("This code has already been used. If this is an error, please contact Eli.")
         } else if (err === "user already used") {
           res.send("It seems you have already redeemed this code. If this is an error, please contact Eli.")
         } else {
-          res.send("Unable to redeem points. If this is an error, please contact Eli.")
+          res.send("Unable to redeem T-Bucks. If this is an error, please contact Eli.")
         }
       })
     }
-  } else if (command === '/points') {
+  } else if (command === '/tbucks') {
     sumPoints(req.body.user_id).then((points) => {
-      res.send(`You have ${points} points.`);
+      res.send(`You have ${points} T-Bucks.`);
     }).catch(() => {
       res.send("An error has occured. Please try again or contact Eli if this keeps occuring.");
     })

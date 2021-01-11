@@ -149,7 +149,7 @@ slackInteractions.viewSubmission('nextPage_submit', payload => {
       populateShopModal(itemID, points).then(newView => {
         let errMessage = "";
         if (err === "not enough") {
-          errMessage = "You do not have enough points for this item.\n";
+          errMessage = "You do not have enough T-Bucks for this item.\n";
         } else if (err === "already purchased") {
           errMessage = "You have already purchased this item.\n"
         } else {
@@ -212,7 +212,7 @@ slackInteractions.action({ type: 'button' }, (payload, respond) => {
           sumPoints(slackID).then(points => {
             populateShopModal(currentItemID, points).then(newView => {
               if (err === "not enough") {
-                newView.blocks[0].text.text = "You do not have enough points for this item.\n" + newView.blocks[0].text.text;
+                newView.blocks[0].text.text = "You do not have enough T-Bucks for this item.\n" + newView.blocks[0].text.text;
               } else if (err === "already purchased") {
                 newView.blocks[0].text.text = "You have already purchased this item.\n" + newView.blocks[0].text.text;
               } else {

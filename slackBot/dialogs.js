@@ -28,7 +28,7 @@ exports.createCode_dialog = {
   callback_id: 'createCode_submit',
   title: {
     type: 'plain_text',
-    text: 'Create points code'
+    text: 'Create T-Bucks code'
   },
   submit: {
     type: 'plain_text',
@@ -52,7 +52,7 @@ exports.createCode_dialog = {
       },
       hint: {
         type: "plain_text",
-        text: "How many points will this code be worth?"
+        text: "How many T-Bucks will this code be worth?"
       }
     },
     {
@@ -72,7 +72,7 @@ exports.createCode_dialog = {
       },
       hint: {
         type: "plain_text",
-        text: "What are these points for?"
+        text: "What are these T-Bucks for?"
       }
     },
     {
@@ -127,7 +127,7 @@ exports.shop_modal = {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "You have N points!"
+        "text": "You have N T-Bucks!"
       }
     },
     {
@@ -137,7 +137,7 @@ exports.shop_modal = {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "We are N% to our goal to get a dunk tank! \n ██████▁▁▁▁▁▁ n/10,000 points"
+        "text": "We are N% to our goal to get a dunk tank! \n ██████▁▁▁▁▁▁ n/10,000 T-Bucks"
       }
     },
     {
@@ -249,7 +249,7 @@ exports.customVal_block = {
   },
   hint: {
     type: "plain_text",
-    text: "How many points do you want to spend?"
+    text: "How many T-Bucks do you want to spend?"
   }
 }
 

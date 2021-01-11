@@ -486,21 +486,27 @@ function purchaseItem(slackID, itemID, customVal, forMember, message) {
       if (err || !row) {
         reject();
       } else {
-        let value = row.itemVal;
-        if (customVal) {
-          value = customVal;
-        }
-        let itemName = row.itemName;
-        sumPoints(slackID).then((points) => {
-          if (points < value) {
-            reject("not enough")
+        db.get('SELECT * FROM purchases WHERE slackID = ? AND itemID = ?', [slackID, itemID], (err, purchased) => {
+          if(err || purchased) {
+            reject("already purchased")
           } else {
-            let cusVal = customVal ? customVal : 0;
-            let forMem = forMember ? forMember : "N/A";
-            let mess = message ? message : "N/A";
-            db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember, message) VALUES(?, ?, ?, ?, ?)', [slackID, itemID, cusVal, forMem, mess], (err) => {
-              if (err) reject();
-              else resolve(itemName);
+            let value = row.itemVal;
+            if (customVal) {
+              value = customVal;
+            }
+            let itemName = row.itemName;
+            sumPoints(slackID).then((points) => {
+              if (points < value) {
+                reject("not enough")
+              } else {
+                let cusVal = customVal ? customVal : 0;
+                let forMem = forMember ? forMember : "N/A";
+                let mess = message ? message : "N/A";
+                db.run('INSERT INTO purchases (slackID, itemId, customVal, forMember, message) VALUES(?, ?, ?, ?, ?)', [slackID, itemID, cusVal, forMem, mess], (err) => {
+                  if (err) reject();
+                  else resolve(itemName);
+                })
+              }
             })
           }
         })

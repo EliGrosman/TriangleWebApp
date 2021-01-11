@@ -19,12 +19,21 @@ html(lang='en')
             if(member.here === 1 || member.excused === 1) 
               tr
                 td(class="tr_here") #{member.fullname}
-                td #{member.here}
-                td #{member.excused}
+                td 
+                  input(type="checkbox" name=member.slackID + "_here" value="true", checked=member.here ? true : false, onClick=`update('here', '${member.slackID}', '${token}')`)
+                td 
+                  input(type="checkbox" name=member.slackID + "_excused" value="true", checked=member.excused ? true : false, onClick=`update('excused', '${member.slackID}', '${token}')`)
             else
               tr
                 td(class="tr_nothere") #{member.fullname}
-                td #{member.here}
-                td #{member.excused}
+                td 
+                  input(type="checkbox" name=member.slackID + "_here" value="true", checked=member.here ? true : false, onClick=`update('here', '${member.slackID}', '${token}')`)
+                td 
+                  input(type="checkbox" name=member.slackID + "_excused" value="true", checked=member.excused ? true : false, onClick=`update('excused', '${member.slackID}', '${token}')`)
 
       a(href="/admin/attendance") Back
+
+script.
+  function update(attribute, slackID, token) {
+    window.open(`/admin/attendance/update?token=${token}&attribute=${attribute}&slackID=${slackID}`, "_self")
+  }

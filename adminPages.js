@@ -4,7 +4,7 @@ var router = express.Router();
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary'];
 
-var { getUsers, updateUser, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken } = require('./slackBot/utils.js')
+var { getUsers, updateUser, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken, updateAttendance } = require('./slackBot/utils.js')
 
 router.get("/editUsers", function (req, res, next) {
   if (req.session && req.session.login_token) {
@@ -56,7 +56,7 @@ router.get('/attendance', async (req, res) => {
     checkLoginToken(req.session.login_token).then(async () => {
       if (req.query.token) {
         let data = await getAttendanceForToken(req.query.token);
-        res.render('attendanceView', { title: 'Attendance', data: data })
+        res.render('attendanceView', { title: 'Attendance', data: data, token: req.query.token })
       } else {
         let data = await getAttendanceData();
         res.render('attendanceHome', { title: 'Attendance', data: data })
@@ -74,6 +74,22 @@ router.get('/attendance', async (req, res) => {
       redirect += '?token=' + req.query.token;
     }
     res.render('login', { title: 'Login', redirect: redirect, flash: 'No token' });
+  }
+})
+
+router.get('/attendance/update', function(req, res) {
+  let token = req.query.token;
+  let attr = req.query.attribute;
+  let slackID = req.query.slackID;
+  if (attr === "here" || attr === "excused") {
+    updateAttendance(token, attr, slackID).then(() => {
+      res.redirect(`/admin/attendance?token=${token}`);
+    }).catch((err) => {
+      console.log(err);
+      res.redirect(`/admin/attendance?token=${token}`);
+    })
+  } else {
+    res.redirect(`/admin/attendance?token=${token}`);
   }
 })
 

@@ -676,4 +676,17 @@ function sendNomination(toSlackID, fromSlackID, challengeName, message) {
   sendDM(toSlackID, text);
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, sendEph, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem, sendNomination }
+function updateAttendance(token, attribute, slackID) {
+  return new Promise((resolve, reject) => {
+    db.run(`UPDATE attendance SET ${attribute} = ((${attribute} | 1) - (${attribute} & 1)) WHERE slackID = ? AND token = ?`, [slackID, token],
+      (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve("Updated!");
+        }
+      })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, sendEph, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem, sendNomination, updateAttendance }

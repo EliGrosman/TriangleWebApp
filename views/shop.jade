@@ -16,6 +16,8 @@ html(lang='en')
             th(scope="col") For Member
             th(scope="col") Message
             th(scope="col") One Time Buy
+            th(scope="col") Cringe Challenge
+            th(scope="col") Exercise Challenge
             th(scope="col")
         tbody
           each item, i in data
@@ -35,6 +37,10 @@ html(lang='en')
                   input(type="checkbox" name=item.customVal + "_message" value="true", checked=item.message ? true : false, onClick=`update('${item.id}', 'message')`)
                 td 
                   input(type="checkbox" name=item.customVal + "_oneTime" value="true", checked=item.oneTime ? true : false, onClick=`update('${item.id}', 'oneTime')`)
+                td 
+                  input(type="checkbox" name=item.customVal + "_cringe" value="true", checked=item.cringe ? true : false, onClick=`update('${item.id}', 'cringe')`)
+                td 
+                  input(type="checkbox" name=item.customVal + "_exercise" value="true", checked=item.exercise ? true : false, onClick=`update('${item.id}', 'exercise')`)
                 td
                   button(onClick=`deleteItem(${item.id})`) Delete
       button(onclick='addItem()') Add New Item

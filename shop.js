@@ -3,7 +3,7 @@ var router = express.Router();
 
 var { getShopItems, checkLoginToken, updateShopItem, addEmptyItem, deleteShopitem } = require('./slackBot/utils.js')
 
-const itemAttributes = ['itemName', 'itemDesc', 'customVal', 'forMember', 'message', 'oneTime']
+const itemAttributes = ['itemName', 'itemDesc', 'customVal', 'forMember', 'message', 'oneTime', 'cringe', 'exercise']
 
 router.get("/shop", function (req, res, next) {
   if (req.session && req.session.login_token) {

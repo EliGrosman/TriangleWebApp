@@ -486,9 +486,11 @@ function purchaseItem(slackID, itemID, customVal, forMember, message) {
       if (err || !row) {
         reject();
       } else {
-        db.get('SELECT * FROM purchases WHERE slackID = ? AND itemID = ?', [slackID, itemID], (err, purchased) => {
-          if(err || purchased) {
+        db.get('SELECT * FROM purchases p JOIN shopItems s ON p.itemID = s.id WHERE p.slackID = ? AND p.itemID = ? AND s.oneTime = 1', [slackID, itemID], (err, purchased) => {
+          if (purchased) {
             reject("already purchased")
+          } else if(err) {
+            reject();
           } else {
             let value = row.itemVal;
             if (customVal) {
@@ -589,29 +591,37 @@ function getNextPage(itemID) {
       let modal = JSON.parse(JSON.stringify(nextPage_modal));
       modal.blocks[0].text.text = `To purchase '${data.itemName}' we need some information:`;
       modal.private_metadata = "" + itemID;
-      getCommitteeMembers("nominee").then(nominees => {
-        if (data.customVal === 1) {
-          modal.blocks.push(customVal_block);
-        }
-        if (data.message === 1) {
-          modal.blocks.push(message_block);
-        }
-        if (data.forMember === 1) {
-          let forMember = Object.assign({}, forMember_block);
-          forMember.element.options = [];
-          for (let i = 0; i < nominees.length; i++) {
-            forMember.element.options.push({
-              "text": {
-                "type": "plain_text",
-                "text": nominees[i].fullname,
-                "emoji": true
-              },
-              "value": nominees[i].slackID
-            })
+      getCommitteeMembers("cringe_nom").then(cringe_noms => {
+        getCommitteeMembers("exercise_nom").then(exercise_noms => {
+          if (data.customVal === 1) {
+            modal.blocks.push(customVal_block);
           }
-          modal.blocks.push(forMember);
-        }
-        resolve(modal);
+          if (data.message === 1) {
+            modal.blocks.push(message_block);
+          }
+          if (data.forMember === 1 && (data.exercise === 1 || data.cringe === 1)) {
+            let forMember = Object.assign({}, forMember_block);
+            forMember.element.options = [];
+            let nominees = [];
+            if(data.cringe === 1) {
+              nominees = cringe_noms;
+            } else if(data.exercise === 1) {
+              nominees = exercise_noms;
+            }
+            for (let i = 0; i < nominees.length; i++) {
+              forMember.element.options.push({
+                "text": {
+                  "type": "plain_text",
+                  "text": nominees[i].fullname,
+                  "emoji": true
+                },
+                "value": nominees[i].slackID
+              })
+            }
+            modal.blocks.push(forMember);
+          }
+          resolve(modal);
+        })
       })
     })
   })
@@ -642,7 +652,7 @@ function updateShopItem(itemID, attribute, value) {
 
 function addEmptyItem() {
   return new Promise((resolve, reject) => {
-    db.run("INSERT INTO shopItems (itemName, customVal, forMember, message, oneTime) VALUES (' ', 0, 0, 0, 0)", [], (err) => {
+    db.run("INSERT INTO shopItems (itemName, customVal, forMember, message, oneTime, cringe, exercise) VALUES (' ', 0, 0, 0, 0, 0, 0)", [], (err) => {
       if (err) {
         reject();
       } else {

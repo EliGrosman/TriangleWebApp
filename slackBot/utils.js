@@ -11,9 +11,9 @@ const queryString = require('query-string');
 const committees = ["recruitment", "events", "engineering", "fundraising", "secretary"];
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 
-const fundGoal = 10000;
-const attendancePointVal = 10;
-const oneOnOnesPointVal = 20;
+const fundGoal = 20000;
+const attendancePointVal = 100;
+const oneOnOnesPointVal = 100;
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();

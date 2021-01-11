@@ -47,7 +47,7 @@ app.get('/', function (req, res, next) {
   res.render('home', { title: 'Home' })
 })
 
-app.use('/admin', adminPages);
+app.use('/admin', urlencodedParser, adminPages);
 app.use('/admin', shopPages);
 app.use('/attendance', urlencodedParser, attendancePages);
 app.use('/admin', urlencodedParser, login);

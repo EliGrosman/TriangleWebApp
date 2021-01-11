@@ -30,6 +30,14 @@ table th {
     margin-top: 70px;
 }
 
+.applyPointsTable {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: 100%;
+    overflow-y: scroll;
+    height: 150px;
+}
+
 td.other {
     overflow: hidden;
     text-overflow: ellipsis;

@@ -350,11 +350,15 @@ function createPointsCode(slackID, channelID, value, description, uses) {
     let code = generateToken(10);
     db.run("INSERT INTO pointCodes (code, value, description, uses, timesUsed) VALUES (?, ?, ?, ?, 0)", [code, value, description, uses], err => {
       if (err) {
-        sendEph(slackID, channelID, `An error has occured. Please try again or contact Eli if this keeps occuring.`);
+        if (slackID !== "server") {
+          sendEph(slackID, channelID, `An error has occured. Please try again or contact Eli if this keeps occuring.`);
+        }
         reject(err);
       } else {
-        sendEph(slackID, channelID, `Code: '${code}' created successfully!`);
-        resolve();
+        if (slackID !== "server") {
+          sendEph(slackID, channelID, `Code: '${code}' created successfully!`);
+        }
+        resolve(code);
       }
     })
   })
@@ -415,29 +419,33 @@ function sumPoints(slackID) {
               if (err || !attendance) {
                 reject(err);
               } else {
-                getCompleted(slackID).then(oneOnOnes => {
-                  let sum = 0;
+                db.get("SELECT COUNT(*) AS count FROM records WHERE slackID1 = ?", [slackID], (err, oneOnOnes) => {
+                  if (err || !attendance) {
+                    reject(err);
+                  } else {
+                    let sum = 0;
 
-                  // add points from codes
-                  codes.forEach(row => {
-                    sum += row.value;
-                  })
+                    // add points from codes
+                    codes.forEach(row => {
+                      sum += row.value;
+                    })
 
-                  // add points from attendance
-                  sum += attendance.count * attendancePointVal;
+                    // add points from attendance
+                    sum += attendance.count * attendancePointVal;
 
-                  // add points from one on ones
-                  sum += oneOnOnes.length * oneOnOnesPointVal;
+                    // add points from one on ones
+                    sum += oneOnOnes.count * oneOnOnesPointVal;
 
-                  // subtract points from purchases
-                  purchases.forEach(row => {
-                    if (row.customVal > 0) {
-                      sum -= row.customVal;
-                    } else {
-                      sum -= row.itemVal;
-                    }
-                  })
-                  resolve(sum);
+                    // subtract points from purchases
+                    purchases.forEach(row => {
+                      if (row.customVal > 0) {
+                        sum -= row.customVal;
+                      } else {
+                        sum -= row.itemVal;
+                      }
+                    })
+                    resolve(sum);
+                  }
                 })
               }
             })

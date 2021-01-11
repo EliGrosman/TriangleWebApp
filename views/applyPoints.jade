@@ -1,0 +1,31 @@
+doctype html
+html(lang='en')
+  include shared/head.jade
+  +head(title)
+  body
+    include shared/navbar.jade
+    +head("")
+    main
+      div(class="container")
+        form(action="/admin/applyPoints" method ='post')
+          div(class='form-group')
+            label(for='num_points') How many points?
+              input(id='num_points' name='num_points' class='form-control')
+          div(class='form-group')
+            label(for='desc') What are these points for?
+              input(id='desc' name='desc' class='form-control')
+          div(class='form-group')
+            label Select people to give points to: 
+              table(class="applyPointsTable table table-dark table-striped")
+                thead  
+                  tr
+                    th(scope="col") 
+                    th(scope="col") 
+                tbody
+                  each member, i in data
+                    tr(scope="row")
+                      td #{member.fullname}
+                      td 
+                        input(type="checkbox" name=member.slackID value="true", checked=false)
+
+          input(type='submit' value='Apply' class='btn')

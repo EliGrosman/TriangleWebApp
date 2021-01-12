@@ -536,7 +536,7 @@ function populateShopModal(itemID, points) {
         modal.private_metadata = "" + data.id;
 
         modal.blocks[0].text.text = `You have ${points} points!`;
-        modal.blocks[2].text.text = `We are ${Math.ceil(percent)}% to our goal to get a dunk tank! \n ${goalBar} ${fund}/10,000 points`
+        modal.blocks[2].text.text = `We are ${Math.ceil(percent)}% to our goal to get a dunk tank! \n ${goalBar} ${fund}/${fundGoal} points`
         modal.blocks[4].fields[0].text = `*Item:*\n ${data.itemName}`
         modal.blocks[4].fields[1].text = `*Value:*\n ${!data.customVal ? data.itemVal : 'Custom value'}`
         modal.blocks[4].fields[2].text = `*Description:*\n ${data.itemDesc}`

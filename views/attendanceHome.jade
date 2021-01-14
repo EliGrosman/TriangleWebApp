@@ -14,6 +14,7 @@ html(lang='en')
             th(scope="col") Meeting Type
             th(scope="col") Recorded By
             th(scope="col") 
+            th(scope="col")
         tbody
           each attendance, i in data
             tr(scope="row")
@@ -22,4 +23,6 @@ html(lang='en')
               td #{attendance.takenBy}
               td
                 a(href="/admin/attendance?token=" + attendance.token) View
+              td
+                a(href="/admin/attendance/delete?token=" + attendance.token) Delete
 

@@ -713,4 +713,16 @@ function updateAttendance(token, attribute, slackID) {
   })
 }
 
-module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, sendEph, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem, sendNomination, updateAttendance }
+function deleteAttendance(token) {
+  return new Promise((resolve, reject) => {
+    db.run("DELETE FROM attendanceTokens WHERE token = ?", [token], (err) => {
+      if(err) {
+        reject();
+      } else {
+        resolve();
+      }
+    })
+  })
+}
+
+module.exports = { recordOneOnOne, getCompleted, getIncomplete, getOneOnOnes, getUsers, sendError, sendEph, updateUser, updateUserChairs, checkToken, getCommitteeMembers, logAttendance, isChair, generateAttendanceUrl, getAttendanceData, getAttendanceForToken, sendDM, checkLoginToken, isAttribute, createPointsCode, redeemCode, sumPoints, getShopItems, getItemInfo, purchaseItem, getFullname, populateShopModal, shopGoBack, shopGoNext, getNextPage, updateShopItem, addEmptyItem, deleteShopitem, sendNomination, updateAttendance, deleteAttendance }

@@ -4,7 +4,7 @@ var router = express.Router();
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'cringe_nom', 'exercise_nom'];
 const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary'];
 
-var { getUsers, updateUser, getCommitteeMembers, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken, updateAttendance, createPointsCode, redeemCode } = require('./slackBot/utils.js')
+var { getUsers, updateUser, getCommitteeMembers, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken, updateAttendance, createPointsCode, redeemCode, deleteAttendance } = require('./slackBot/utils.js')
 
 router.get("/editUsers", function (req, res, next) {
   if (req.session && req.session.login_token) {
@@ -91,6 +91,15 @@ router.get('/attendance/update', function (req, res) {
   } else {
     res.redirect(`/admin/attendance?token=${token}`);
   }
+})
+
+router.get('/attendance/delete', function(req, res) {
+  let token = req.query.token;
+  deleteAttendance(token).then(() => {
+    res.redirect('/admin/attendance');
+  }).catch(() => {
+    res.redirect('/admin/attendance');
+  })
 })
 
 router.get('/applyPoints', function (req, res) {

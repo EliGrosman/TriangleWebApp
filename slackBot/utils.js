@@ -421,7 +421,7 @@ function sumPoints(slackID) {
             reject(err);
           } else {
             let purchases = rows;
-            db.get("SELECT COUNT(*) AS count, at.meeting AS meeting FROM attendance a JOIN attendanceTokens at ON a.token = at.token WHERE a.slackID = ? AND a.here = 1 GROUP BY at.meeting", [slackID], (err, attendance) => {
+            db.all("SELECT COUNT(*) AS count, at.meeting AS meeting FROM attendance a JOIN attendanceTokens at ON a.token = at.token WHERE a.slackID = ? AND a.here = 1 GROUP BY at.meeting", [slackID], (err, attendance) => {
               if (err) {
                 reject(err);
               } else {

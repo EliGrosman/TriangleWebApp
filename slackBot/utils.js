@@ -8,12 +8,18 @@ const { open } = require('sqlite');
 const { shop_modal, nextPage_modal, customVal_block, forMember_block, message_block } = require('./dialogs')
 const queryString = require('query-string');
 
-const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary', 'internal', 'external', 'alumni', 'bi/pd'];
+const attendancePositions = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary', 'internal', 'external', 'alumni', 'bi/pd'];
+const committees = ['recruitment', 'events', 'engineering', 'fundraising'];
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 
 const fundGoal = 20000;
-const attendancePointVal = 100;
+const GM_attendanceValue = 100;
+const CM_attendanceValue = 100;
+const alumni_attendanceValue = 50;
+const branch_attendanceValue = 50;
+const BIPD_attendanceValue = 100;
 const oneOnOnesPointVal = 100;
+
 
 function recordOneOnOne(payload) {
   var userID = payload.user.id.toString();
@@ -228,11 +234,11 @@ function isChair(slackID) {
   return new Promise((resolve, reject) => {
     let checked = 0;
     let result = [];
-    committees.forEach((committee) => {
+    attendancePositions.forEach((committee) => {
       db.get(`SELECT * FROM people WHERE slackID = ? AND chair LIKE '%${committee}%'`, [slackID], (err, row) => {
         if (row) result.push(committee);
         checked++;
-        if (checked === committees.length) {
+        if (checked === attendancePositions.length) {
           if (result.length === 0) reject("not chair")
           else resolve(result);
         }
@@ -415,12 +421,12 @@ function sumPoints(slackID) {
             reject(err);
           } else {
             let purchases = rows;
-            db.get("SELECT COUNT(*) AS count FROM attendance WHERE slackID = ? AND here = 1", [slackID], (err, attendance) => {
-              if (err || !attendance) {
+            db.get("SELECT COUNT(*) AS count, at.meeting AS meeting FROM attendance a JOIN attendanceTokens at ON a.token = at.token WHERE a.slackID = ? AND a.here = 1 GROUP BY at.meeting", [slackID], (err, attendance) => {
+              if (err) {
                 reject(err);
               } else {
                 db.get("SELECT COUNT(*) AS count FROM records WHERE slackID1 = ?", [slackID], (err, oneOnOnes) => {
-                  if (err || !attendance) {
+                  if (err || !oneOnOnes) {
                     reject(err);
                   } else {
                     let sum = 0;
@@ -431,7 +437,21 @@ function sumPoints(slackID) {
                     })
 
                     // add points from attendance
-                    sum += attendance.count * attendancePointVal;
+                    if(attendance) {
+                      attendance.forEach(a => {
+                        if(a.meeting === "active") {
+                          sum += GM_attendanceValue * a.count;
+                        } else if (committees.includes(a.meeting)) {
+                          sum += CM_attendanceValue * a.count;
+                        } else if (a.meeting === "alumni") {
+                          sum += alumni_attendanceValue * a.count;
+                        } else if(branches.includes(a.meeting)) {
+                          sum += branch_attendanceValue * a.count;
+                        } else if (a.meeting === "bi/pd") {
+                          sum += BIPD_attendanceValue * a.count;
+                        }
+                      })    
+                    }
 
                     // add points from one on ones
                     sum += oneOnOnes.count * oneOnOnesPointVal;

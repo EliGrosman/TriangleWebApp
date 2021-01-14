@@ -8,7 +8,7 @@ const { open } = require('sqlite');
 const { shop_modal, nextPage_modal, customVal_block, forMember_block, message_block } = require('./dialogs')
 const queryString = require('query-string');
 
-const committees = ["recruitment", "events", "engineering", "fundraising", "secretary"];
+const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary', 'internal', 'external', 'alumni', 'bi/pd'];
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'nominee'];
 
 const fundGoal = 20000;

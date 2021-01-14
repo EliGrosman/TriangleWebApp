@@ -12,6 +12,8 @@ router.get("/", function (req, res, next) {
   } else {
     checkToken(token).then((result) => {
       let meeting = result.meeting;
+      if(meeting === "alumni" || meeting === "bi/pd")
+        meeting = "active"
       getCommitteeMembers(meeting).then((members) => {
         res.render('takeAttendance', { title: 'Attendance', data: members, meeting: meeting, takenBy: takenBy, token: token })
       }).catch(() => {

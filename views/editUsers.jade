@@ -11,17 +11,16 @@ html(lang='en')
           tr
             th(scope="col") Full Name
             th(scope="col") SlackID
-            th(scope="col") Username
             th(scope="col") Active
             th(scope="col") Brother
             th(scope="col") Alumnus
             th(scope="col") Eboard
-            th(scope="col") Server
             th(scope="col") Recruitment
             th(scope="col") Events
-            th(scope="col") Engineering
             th(scope="col") Fundraising
             th(scope="col") Standards
+            th(scope="col") Internal Branch
+            th(scope="col") External Branch
             th(scope="col") Cringe Nominee
             th(scope="col") Exercise Nominee
             th(scope="col") Chairs
@@ -30,7 +29,6 @@ html(lang='en')
             tr(scope="row")
               td #{member.fullname}
               td(class="other") #{member.slackID}
-              td(class="other") #{member.username}
               td 
                 input(type="checkbox" name=member.slackID + "_active" value="true", checked=member.active ? true : false, onClick=`update('active', '${member.slackID}')`)
               td 
@@ -40,17 +38,17 @@ html(lang='en')
               td 
                 input(type="checkbox" name=member.slackID + "_eboard" value="true", checked=member.eboard ? true : false, onClick=`update('eboard', '${member.slackID}')`)
               td 
-                input(type="checkbox" name=member.slackID + "_server" value="true", checked=member.server ? true : false, onClick=`update('server', '${member.slackID}')`)
-              td 
                 input(type="checkbox" name=member.slackID + "_recruitment" value="true", checked=member.recruitment ? true : false, onClick=`update('recruitment', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_events" value="true", checked=member.events ? true : false, onClick=`update('events', '${member.slackID}')`)
               td 
-                input(type="checkbox" name=member.slackID + "_engineering" value="true", checked=member.engineering ? true : false, onClick=`update('engineering', '${member.slackID}')`)
-              td 
                 input(type="checkbox" name=member.slackID + "_fundraising" value="true", checked=member.fundraising ? true : false, onClick=`update('fundraising', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_standards" value="true", checked=member.standards ? true : false, onClick=`update('standards', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_internal" value="true", checked=member.internal ? true : false, onClick=`update('internal', '${member.slackID}')`)
+              td 
+                input(type="checkbox" name=member.slackID + "_external" value="true", checked=member.external ? true : false, onClick=`update('external', '${member.slackID}')`)
               td 
                 input(type="checkbox" name=member.slackID + "_cringe_nom" value="true", checked=member.cringe_nom ? true : false, onClick=`update('cringe_nom', '${member.slackID}')`)
               td 

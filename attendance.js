@@ -12,9 +12,10 @@ router.get("/", function (req, res, next) {
   } else {
     checkToken(token).then((result) => {
       let meeting = result.meeting;
+      let committee = result.meeting;
       if(meeting === "alumni" || meeting === "bi/pd")
-        meeting = "active"
-      getCommitteeMembers(meeting).then((members) => {
+        committee = "active"
+      getCommitteeMembers(committee).then((members) => {
         res.render('takeAttendance', { title: 'Attendance', data: members, meeting: meeting, takenBy: takenBy, token: token })
       }).catch(() => {
         res.send("Error");

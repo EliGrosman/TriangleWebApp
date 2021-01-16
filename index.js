@@ -7,11 +7,18 @@ const { WebClient } = require('@slack/client')
 const bodyParser = require('body-parser')
 const path = require('path');
 var slackSlashCommand = require('./slackBot/slashCommands.js');
-var { recordOneOnOne, generateAttendanceUrl, sendError, createPointsCode, purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage, sendNomination, sendEph } = require('./slackBot/utils.js');
+
+var { recordOneOnOne } = require('./utils/oneonones.js')
+var { generateAttendanceUrl } = require('./utils/attendance.js')
+var { createPointsCode } = require('./utils/points.js')
+var { purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage } = require('./utils/shop.js')
+var { sendNomination, sendEph } = require('./utils/slack.js')
+
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');
 var login = require('./login');
 var shopPages = require('./shop.js');
+
 var { sendWeekly, genWeekly } = require("./slackBot/weekly.js");
 
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET

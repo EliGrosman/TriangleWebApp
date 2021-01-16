@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
 
-var { getShopItems, checkLoginToken, updateShopItem, addEmptyItem, deleteShopitem } = require('./slackBot/utils.js')
-
+var { getShopItems, updateShopItem, addEmptyItem, deleteShopitem } = require('./utils/shop.js')
+var { checkLoginToken } = require('./utils/login.js')
 const itemAttributes = ['itemName', 'itemDesc', 'customVal', 'forMember', 'message', 'oneTime', 'cringe', 'exercise']
 
 router.get("/shop", function (req, res, next) {

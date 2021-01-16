@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
-const { sendDM } = require('./utils');
+const { sendDM } = require('../utils/slack.js');
 
 const completedNoneQuery = "SELECT DISTINCT(p.slackID), p.fullname, COUNT(p.slackID) - 1 count FROM people p WHERE p.active = 1 AND p.slackID NOT IN (SELECT slackID1 FROM records) AND p.slackID NOT IN (SELECT slackID2 FROM records) GROUP BY p.slackID";
 const completedSomeQuery = "SELECT slackID, fullname, COUNT(r.slackID1) count FROM people p, records r WHERE p.active = 1 AND r.slackID1 = p.slackID GROUP BY p.slackID ORDER BY count ASC";

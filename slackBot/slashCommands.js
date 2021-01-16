@@ -1,9 +1,16 @@
 const { record_dialog, createCode_dialog, attendanceCommitteeChoice, shop_modal } = require('./dialogs')
 const { WebClient } = require('@slack/client')
-var { getCompleted, getIncomplete, getOneOnOnes, sendError, isChair, generateAttendanceUrl, isAttribute, redeemCode, sumPoints, getShopItems, populateShopModal } = require('./utils.js')
+
+var { getCompleted, getIncomplete, getOneOnOnes } = require('../utils/oneonones.js')
+var { sendError } = require('../utils/slack.js')
+var { isChair, isProperty } = require('../utils/members.js')
+var { generateAttendanceUrl } = require('../utils/attendance.js')
+var { redeemCode, sumPoints, } = require('../utils/points.js')
+var { getShopItems } = require('../utils/shop.js')
+var { populateShopModal } = require('../utils/modals.js')
+
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN
 const web = new WebClient(slackAccessToken);
-const moment = require('moment-timezone');
 
 function slackSlashCommand(req, res, next) {
   var command = req.body.command.toLowerCase();
@@ -114,7 +121,7 @@ function slackSlashCommand(req, res, next) {
       }
     })
   } else if (command === '/createcode') {
-    isAttribute(req.body.user_id, 'eboard').then(() => {
+    isProperty(req.body.user_id, 'eboard').then(() => {
       let modalJson = Object.assign({}, createCode_dialog);
       modalJson.private_metadata = req.body.channel_id;
       web.views.open({

@@ -1,12 +1,14 @@
 var express = require("express");
 var router = express.Router();
 
-var { checkToken, getCommitteeMembers, logAttendance } = require('./slackBot/utils.js')
+var { checkToken, getCommitteeMembers, logAttendance } = require('./utils/attendance.js')
 
 router.get("/", function (req, res, next) {
   let token = req.query.token;
   let takenBy = req.query.takenBy;
 
+  console.log(token)
+  console.log(takenBy)
   if(!token || !takenBy) {
     res.send("Invalid")
   } else {
@@ -21,6 +23,7 @@ router.get("/", function (req, res, next) {
         res.send("Error");
       })
     }).catch((err) => {
+      console.log(err)
       if(err === "expired") {
         res.send("Link expired.")
       } else {
@@ -34,8 +37,10 @@ router.post("/submit", function (req, res, next) {
   let meeting = req.query.meeting;
   let takenBy = req.query.takenBy;
   let token = req.query.token;
-
-  getCommitteeMembers(meeting).then((members) => {
+  let committee = req.query.meeting;
+  if(meeting === "alumni" || meeting === "bi/pd")
+    committee = "active"
+  getCommitteeMembers(committee).then((members) => {
     let data = [];
     members.forEach((member) => {
       let here = false;

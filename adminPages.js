@@ -4,7 +4,10 @@ var router = express.Router();
 const attributes = ['active', 'brother', 'alumnus', 'eboard', 'server', 'recruitment', 'events', 'engineering', 'fundraising', 'standards', 'cringe_nom', 'exercise_nom', 'internal', 'external'];
 const committees = ['recruitment', 'events', 'engineering', 'fundraising', 'secretary', 'internal', 'external', 'alumni', 'bi/pd'];
 
-var { getUsers, updateUser, getCommitteeMembers, getAttendanceData, getAttendanceForToken, updateUserChairs, checkLoginToken, updateAttendance, createPointsCode, redeemCode, deleteAttendance } = require('./slackBot/utils.js')
+var { getUsers, updateUser, getCommitteeMembers, updateUserChairs} = require('./utils/members.js')
+var { getAttendanceData, getAttendanceForToken, updateAttendance, deleteAttendance} = require('./utils/attendance.js')
+var { checkLoginToken } = require('./utils/login.js')
+var { createPointsCode, redeemCode } = require('./utils/points.js')
 
 router.get("/editUsers", function (req, res, next) {
   if (req.session && req.session.login_token) {

@@ -11,8 +11,9 @@ var slackSlashCommand = require('./slackBot/slashCommands.js');
 var { recordOneOnOne } = require('./utils/oneonones.js')
 var { generateAttendanceUrl } = require('./utils/attendance.js')
 var { createPointsCode } = require('./utils/points.js')
-var { purchaseItem, sumPoints, populateShopModal, shopGoBack, shopGoNext, getItemInfo, getNextPage } = require('./utils/shop.js')
+var { purchaseItem, sumPoints, getItemInfo } = require('./utils/shop.js')
 var { sendNomination, sendEph } = require('./utils/slack.js')
+var { populateShopModal, shopGoBack, shopGoNext, getNextPage } = require('./utils/modals.js');
 
 var adminPages = require('./adminPages.js');
 var attendancePages = require('./attendance.js');

@@ -31,6 +31,16 @@ function createPointsCode(slackID, channelID, value, description, uses) {
   })
 }
 
+function generateToken(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 function redeemCode(slackID, code) {
   return new Promise((resolve, reject) => {
     db.get("SELECT uses, timesUsed FROM pointCodes WHERE code = ?", [code], (err, row) => {

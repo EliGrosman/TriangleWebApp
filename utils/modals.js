@@ -49,7 +49,7 @@ function shopGoBack(currentItemID) {
       }
     })
   }).catch(err => {
-    resolve(err);
+    reject(err);
   })
 }
 
@@ -67,7 +67,7 @@ function shopGoNext(currentItemID) {
       }
     })
   }).catch(err => {
-    resolve(err);
+    reject(err);
   })
 }
 

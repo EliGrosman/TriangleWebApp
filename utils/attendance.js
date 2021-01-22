@@ -1,5 +1,6 @@
 const moment = require('moment-timezone');
 const { open } = require('sqlite');
+const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 
 function checkToken(token) {

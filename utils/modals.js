@@ -1,4 +1,5 @@
 const { shop_modal, nextPage_modal, customVal_block, forMember_block, message_block } = require('../slackBot/dialogs.js')
+const { getItemInfo, calculateFund, getShopItems } = require('../utils/shop.js');
 
 const fundGoal = 20000;
 

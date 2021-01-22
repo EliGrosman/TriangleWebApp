@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
 
 const committees = ['recruitment', 'events', 'engineering', 'fundraising'];
+const branches = ['internal', 'external']
 
 const GM_attendanceValue = 100;
 const CM_attendanceValue = 100;
@@ -81,7 +82,7 @@ function sumPoints(slackID) {
             reject(err);
           } else {
             let purchases = rows;
-            db.all("SELECT COUNT(*) AS count, at.meeting AS meeting FROM attendance a JOIN attendanceTokens at ON a.token = at.token WHERE a.slackID = ? AND a.here = 1 GROUP BY at.meeting", [slackID], (err, attendance) => {
+            db.all("SELECT COUNT(*) AS count, at.meeting AS meeting FROM attendance a JOIN attendanceTokens at ON a.token = at.token WHERE a.slackID = ? AND a.here = 1 AND a.token IN (SELECT DISTINCT(token) from attendanceTokens) GROUP BY at.meeting", [slackID], (err, attendance) => {
               if (err) {
                 reject(err);
               } else {

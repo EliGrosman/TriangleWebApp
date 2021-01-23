@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-var { getShopItems, updateShopItem, addEmptyItem, deleteShopitem } = require('./utils/shop.js')
+var { getShopItems, updateShopItem, addEmptyItem, deleteShopitem, getPurchases } = require('./utils/shop.js')
 var { checkLoginToken } = require('./utils/login.js')
 const itemAttributes = ['itemName', 'itemDesc', 'customVal', 'forMember', 'message', 'oneTime', 'cringe', 'exercise']
 
@@ -52,7 +52,19 @@ router.get('/shop/deleteItem', function(req, res) {
   })
 })
 
-
+router.get("/purchases", function (req, res, next) {
+  if (req.session && req.session.login_token) {
+    checkLoginToken(req.session.login_token).then(() => {
+      getPurchases().then((data) => {
+        res.render('purchases', { title: 'Purchases', data: data })
+      })
+    }).catch(() => {
+      res.render('login', { title: 'Login', redirect: '/admin/purchases', flash: 'Invalid login token. Please try again.' });
+    })
+  } else {
+    res.render('login', { title: 'Login', redirect: '/admin/purchases', flash: 'No token' });
+  }
+});
 
 
 module.exports = router;

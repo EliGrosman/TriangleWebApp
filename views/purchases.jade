@@ -1,0 +1,24 @@
+doctype html
+html(lang='en')
+  include shared/head.jade
+  +head(title)
+  body
+    include shared/navbar.jade
+    +head("purchases")
+    div(class="container")
+      table(class="editUsersTable table table-dark table-striped")
+        thead  
+          tr
+            th(scope="col") Member
+            th(scope="col") Item
+            th(scope="col") Custom Value
+            th(scope="col") For Member
+            th(scope="col") Message
+        tbody
+          each purchase, i in data
+              tr(scope="row")
+                td #{purchase.fullname}
+                td #{purchase.itemName}
+                td #{purchase.customVal}
+                td #{purchase.forMember}
+                td #{purchase.message}

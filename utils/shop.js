@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
+var { sumPoints } = require('./points.js')
 
 function getShopItems() {
   return new Promise((resolve, reject) => {
@@ -126,4 +127,16 @@ function calculateFund() {
   })
 }
 
-module.exports = { getShopItems, getItemInfo, purchaseItem, updateShopItem, addEmptyItem, deleteShopitem, calculateFund }
+function getPurchases() {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT p.slackID AS slackID, pe.fullname AS fullname, s.itemName AS itemName, p.customVal AS customVal, p.forMember AS forMember, p.message AS message FROM purchases p JOIN shopItems s ON p.itemID = s.id JOIN people pe on p.slackID = pe.slackID", [], (err, rows) => {
+      if(err || !rows) {
+        reject();
+      } else {
+        resolve(rows);
+      }
+    })
+  })
+}
+
+module.exports = { getShopItems, getItemInfo, purchaseItem, updateShopItem, addEmptyItem, deleteShopitem, calculateFund, getPurchases }

@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./database.db');
-const { sendEph } = requrie('./slack.js');
+var { sendEph } = require('./slack.js')
 
 const committees = ['recruitment', 'events', 'engineering', 'fundraising'];
 const branches = ['internal', 'external']

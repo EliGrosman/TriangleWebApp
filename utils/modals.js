@@ -1,6 +1,6 @@
 const { shop_modal, nextPage_modal, customVal_block, forMember_block, message_block } = require('../slackBot/dialogs.js')
 const { getItemInfo, calculateFund, getShopItems } = require('../utils/shop.js');
-
+const { getMembersWithProperty } = require('../utils/members.js')
 const fundGoal = 20000;
 
 function populateShopModal(itemID, points) {
@@ -77,8 +77,8 @@ function getNextPage(itemID) {
       let modal = JSON.parse(JSON.stringify(nextPage_modal));
       modal.blocks[0].text.text = `To purchase '${data.itemName}' we need some information:`;
       modal.private_metadata = "" + itemID;
-      getCommitteeMembers("cringe_nom").then(cringe_noms => {
-        getCommitteeMembers("exercise_nom").then(exercise_noms => {
+      getMembersWithProperty("cringe_nom").then(cringe_noms => {
+        getMembersWithProperty("exercise_nom").then(exercise_noms => {
           if (data.customVal === 1) {
             modal.blocks.push(customVal_block);
           }

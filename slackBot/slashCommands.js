@@ -3,7 +3,7 @@ const { WebClient } = require('@slack/client')
 
 var { getCompleted, getIncomplete, getOneOnOnes } = require('../utils/oneonones.js')
 var { sendError } = require('../utils/slack.js')
-var { isChair, isProperty } = require('../utils/members.js')
+var { getChairs, isProperty } = require('../utils/members.js')
 var { generateAttendanceUrl } = require('../utils/attendance.js')
 var { redeemCode, sumPoints, } = require('../utils/points.js')
 var { getShopItems } = require('../utils/shop.js')
@@ -88,7 +88,7 @@ function slackSlashCommand(req, res, next) {
     })
 
   } else if (command === "/takeattendance") {
-    isChair(req.body.user_id).then((committees) => {
+    getChairs(req.body.user_id).then((committees) => {
       if (committees.length === 1) {
         if(committees[0] === "secretary")
           committees[0] = "active";

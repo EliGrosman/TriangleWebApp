@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-var { checkToken, getCommitteeMembers, logAttendance } = require('./utils/attendance.js')
+var { checkToken, getMembersWithProperty, logAttendance } = require('./utils/attendance.js')
 
 router.get("/", function (req, res, next) {
   let token = req.query.token;
@@ -17,7 +17,7 @@ router.get("/", function (req, res, next) {
       let committee = result.meeting;
       if(meeting === "alumni" || meeting === "bi/pd")
         committee = "active"
-      getCommitteeMembers(committee).then((members) => {
+      getMembersWithProperty(committee).then((members) => {
         res.render('takeAttendance', { title: 'Attendance', data: members, meeting: meeting, takenBy: takenBy, token: token })
       }).catch(() => {
         res.send("Error");
@@ -40,7 +40,7 @@ router.post("/submit", function (req, res, next) {
   let committee = req.query.meeting;
   if(meeting === "alumni" || meeting === "bi/pd")
     committee = "active"
-  getCommitteeMembers(committee).then((members) => {
+  getMembersWithProperty(committee).then((members) => {
     let data = [];
     members.forEach((member) => {
       let here = false;

@@ -1,7 +1,8 @@
 var express = require("express");
 var router = express.Router();
 
-var { checkToken, getMembersWithProperty, logAttendance } = require('./utils/attendance.js')
+var { checkToken, logAttendance } = require('./utils/attendance.js')
+var { getMembersWithProperty } = require('./utils/members.js')
 
 router.get("/", function (req, res, next) {
   let token = req.query.token;

@@ -55,7 +55,7 @@ html(lang='en')
                 input(type="checkbox" name=member.slackID + "_exercise_nom" value="true", checked=member.exercise_nom ? true : false, onClick=`update('exercise_nom', '${member.slackID}')`)
               td
                 input(type="text", name=member.slackID + "_chair", value=member.chair, onfocusout=`updateChair('${member.slackID}')` class="chair_text")
-
+      button(onclick='addItem()') Add New Item
 script.
   function update(attribute, slackID) {
     window.open(`/admin/editUsers/update?attribute=${attribute}&slackID=${slackID}`, "_self")
@@ -64,4 +64,8 @@ script.
   function updateChair(slackID) {
     let text = document.getElementsByName(slackID + "_chair");
     window.open(`/admin/editUsers/updateChairs?value=${text[0].value}&slackID=${slackID}`, "_self")
+  }
+
+  function addItem() {
+    window.open('/admin/editUsers/addMember', '_self')
   }

@@ -89,4 +89,18 @@ function getChairs(slackID) {
   })
 }
 
-module.exports = { getUsers, updateUser, updateUserChairs, getMembersWithProperty, isProperty, getChairs }
+function addEmptyUser() {
+  console.log("e")
+  return new Promise((resolve, reject) => {
+    db.run("INSERT INTO people (fullname, slackID, username, chair) VALUES ('', '', '', '')", [], (err) => {
+      if (err) {
+        console.log(err)
+        reject();
+      } else {
+        resolve();
+      }
+    })
+  })
+}
+
+module.exports = { getUsers, updateUser, updateUserChairs, getMembersWithProperty, isProperty, getChairs, addEmptyUser }

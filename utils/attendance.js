@@ -66,7 +66,7 @@ function generateAttendanceUrl(slackID, committee) {
         db.get("SELECT fullname FROM people WHERE slackID = ?", [slackID], (err, row) => {
           if (err || !row) reject()
           else {
-            resolve(`http://server.eligrosman.com:5000/attendance?meeting=${committee}&takenBy=${row.fullname.replace(" ", "%20")}&token=${token}`)
+            resolve(`http://server.triangleuw.com:5000/attendance?meeting=${committee}&takenBy=${row.fullname.replace(" ", "%20")}&token=${token}`)
           }
         })
       }
